@@ -59,6 +59,19 @@ html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-w
   .specs-row>div:first-child{border-top:0}
   .pill{font-size:.6rem;padding:6px 10px;letter-spacing:.08em}
 }
+/* phone layout: controls sit in a bar under the 3D view instead of on top of it */
+.ctrl{display:none}
+@media (max-width:600px){
+  .style-btn{padding:14px 6px;font-size:.62rem;letter-spacing:.06em;line-height:1.3;white-space:normal}
+  .mood{padding:14px 18px;font-size:.9rem}
+  .stage .badge{display:none}
+  .ctrl{display:flex;flex-direction:column;gap:10px;padding:12px 14px 14px;border-top:1px solid var(--line-2);background:#000}
+  .ctrl .mode,.ctrl .views{position:static;max-width:none;width:100%}
+  .ctrl .mode{display:grid;grid-template-columns:1fr 1fr}
+  .ctrl .views{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ctrl .pill{font-size:.68rem;letter-spacing:.1em;padding:0 8px;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center}
+  .ctrl .mode .pill[aria-pressed="true"]{background:#fff;color:#000}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .sp-row{display:grid;grid-template-columns:1.1fr 1fr 1fr;border-top:1px solid var(--line-2)}
 .sp-row>div{padding:22px 22px 24px;border-left:1px solid var(--line-2);min-width:0}
@@ -92,6 +105,7 @@ html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-w
     </div>
     <div class="plan-layer" id="plan-layer" hidden><svg id="plan-svg" viewBox="-60 -36 320 310" role="img" aria-label="Dimensioned deck framing plan"></svg></div>
   </div>
+  <div class="ctrl" id="ctrl" role="group" aria-label="View controls"></div>
   <div class="sp-row">
     <div><p class="lab">Materials</p><ul class="specs" id="s-mat"></ul></div>
     <div><p class="lab">Railing &amp; details</p><div class="finish" id="s-finish"></div></div>
@@ -441,5 +455,11 @@ build('modern'); resize(); setView('over',true);
   document.querySelectorAll('.style-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(post,50)));
   post();
 })();
+</script>
+<script>
+(function(){ const stage=document.getElementById('stage'), ctrl=document.getElementById('ctrl');
+  const mode=stage.querySelector('.mode')||ctrl.querySelector('.mode'), views=document.getElementById('views'), mq=matchMedia('(max-width:600px)');
+  function place(){ if(mq.matches){ if(mode.parentNode!==ctrl){ ctrl.append(mode,views); } } else if(mode.parentNode!==stage){ stage.append(mode,views); } }
+  place(); (mq.addEventListener?mq.addEventListener('change',place):mq.addListener(place)); })();
 </script>
 </body></html>
