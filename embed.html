@@ -59,6 +59,57 @@ html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-w
   .specs-row>div:first-child{border-top:0}
   .pill{font-size:.6rem;padding:6px 10px;letter-spacing:.08em}
 }
+/* customizer: 3D view with a selection panel beside it (stacked on smaller screens) */
+.app{display:grid;grid-template-columns:minmax(0,1fr) 340px}
+.viewer{min-width:0;display:flex;flex-direction:column}
+.panel{position:relative;border-left:1px solid var(--line-2);background:#050608;min-height:420px}
+.panel-in{position:absolute;inset:0;display:flex;flex-direction:column}
+.p-head{display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
+.p-head .lab{margin:0}
+.p-mix{font-size:.76rem;color:var(--silver);font-weight:300;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.reset{appearance:none;background:transparent;border:1px solid var(--line);color:#fff;border-radius:50px;font:700 .6rem var(--f);letter-spacing:.14em;text-transform:uppercase;padding:6px 11px;cursor:pointer}
+.reset[disabled]{opacity:.35;cursor:default}
+.cats{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px;border-bottom:1px solid var(--line-2)}
+.cat{appearance:none;flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--silver);border-radius:50px;padding:8px 13px;font:700 .62rem var(--f);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background-color .2s,color .2s}
+.cat:hover{color:#fff}
+.cat[aria-selected="true"]{background:#fff;color:#000;border-color:#fff}
+.cat:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.opts{flex:1;overflow-y:auto;padding:14px 16px 18px;overscroll-behavior:contain}
+.grp{margin:0 0 8px;font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.grp:not(:first-child){margin-top:18px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px}
+.card{appearance:none;position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;background:transparent;border:0;padding:0;color:#fff;cursor:pointer;font-family:var(--f);min-width:0}
+.card .th{display:block;width:100%;aspect-ratio:1/1;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:#0b0d10 center/cover no-repeat;transition:border-color .2s,box-shadow .2s;overflow:hidden}
+.card .th svg{width:100%;height:100%;display:block}
+.card .th.round{border-radius:50%;width:78%;margin:4px auto 0}
+.card .nm{font-size:.72rem;font-weight:600;line-height:1.25}
+.card .sub{font-size:.62rem;color:var(--muted);font-weight:300;line-height:1.3;margin-top:-4px}
+.card:hover .th{border-color:rgba(255,255,255,.55)}
+.card[aria-pressed="true"] .th{border-color:#fff;box-shadow:0 0 0 2px #fff}
+.card[aria-pressed="true"]::after{content:"";position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23000' stroke-width='3'/%3E%3C/svg%3E") center/12px no-repeat}
+.card:focus-visible{outline:none}
+.card:focus-visible .th{box-shadow:0 0 0 3px #fff}
+.p-note{margin:16px 0 0;font-size:.68rem;color:var(--muted);font-weight:300;line-height:1.45}
+.picks-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:18px 22px;border-top:1px solid var(--line-2)}
+.btn{appearance:none;border:1px solid #fff;border-radius:50px;padding:0 24px;font:800 .7rem var(--f);letter-spacing:.16em;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:46px}
+.btn.solid{background:#fff;color:#000}
+.btn.ghost{background:transparent;color:#fff}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .panel{border-left:0;border-top:1px solid var(--line-2);min-height:0}
+  .panel-in{position:static}
+  .opts{overflow:visible}
+  /* stacked: 3D view, then the picks, then the camera buttons, so a pick and its result sit close together */
+  .viewer{display:contents}
+  .stage{order:1}.panel{order:2}.ctrl{order:3}
+  .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cat{padding:0 15px;min-height:40px}
+  .picks-bar .btn{flex:1 1 100%}
+}
 /* phone layout: controls sit in a bar under the 3D view instead of on top of it */
 .ctrl{display:none}
 @media (max-width:600px){
@@ -91,6 +142,8 @@ html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-w
     <button class="style-btn" data-style="coastal" aria-pressed="false">Coastal Two-Tone</button>
   </div>
   <p class="mood" id="s-mood"></p>
+  <div class="app">
+  <div class="viewer">
   <div class="stage" id="stage">
     <div class="badge"><b>16′×12′</b> <span id="s-name">Trex Classic</span></div>
     <div class="mode" role="group" aria-label="View mode">
@@ -106,13 +159,23 @@ html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-w
     <div class="plan-layer" id="plan-layer" hidden><svg id="plan-svg" viewBox="-60 -36 320 310" role="img" aria-label="Dimensioned deck framing plan"></svg></div>
   </div>
   <div class="ctrl" id="ctrl" role="group" aria-label="View controls"></div>
+  </div>
+  <aside class="panel" aria-label="Customize your deck">
+    <div class="panel-in">
+      <div class="p-head"><p class="lab">Customize</p><span class="p-mix" id="p-mix"></span><button class="reset" id="p-reset" disabled>Reset</button></div>
+      <div class="cats" role="tablist" aria-label="What to change" id="cats"></div>
+      <div class="opts" id="opts" role="tabpanel"></div>
+    </div>
+  </aside>
+  </div>
   <div class="sp-row">
     <div><p class="lab">Materials</p><ul class="specs" id="s-mat"></ul></div>
     <div><p class="lab">Railing &amp; details</p><div class="finish" id="s-finish"></div></div>
     <div><p class="lab">What we handle</p><ul id="s-code"></ul></div>
   </div>
+  <div class="picks-bar"><a class="btn solid" href="https://www.henrysimprovements.com/contact" target="_top">Get a quote for this design</a><button class="btn ghost" id="p-copy">Copy my selections</button></div>
   <div class="suppliers" aria-label="Our suppliers"><span class="sup-lab">Decking &amp; railing from</span><span class="brand">Trex</span></div>
-  <p class="foot">Sample 16′×12′ deck, 3′ off the ground. Your design is drawn to your yard's real measurements, with the decking and railing you pick.</p>
+  <p class="foot">Sample 16′×12′ deck, 3′ off the ground. Colors on screen are close, not exact, so see real Trex samples before you order. Your design is drawn to your yard's real measurements.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -144,30 +207,94 @@ function sidingTex(base){
   const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding=THREE.sRGBEncoding; return t;
 }
 
-/* ---------- Styles (generic, widely stocked products) ---------- */
+/* ---------- Trex decking colors by line (names from trex.com; on-screen colors are approximate) ---------- */
+const DECKS={
+  'sig-ocracoke':{name:'Ocracoke',line:'Trex Signature',base:'#7e776f'},
+  'sig-whidbey':{name:'Whidbey',line:'Trex Signature',base:'#a39686'},
+  'lin-biscayne':{name:'Biscayne',line:'Trex Transcend Lineage',base:'#a68a6a'},
+  'lin-carmel':{name:'Carmel',line:'Trex Transcend Lineage',base:'#8d5f3d'},
+  'lin-island-mist':{name:'Island Mist',line:'Trex Transcend Lineage',base:'#a4a29c'},
+  'lin-jasper':{name:'Jasper',line:'Trex Transcend Lineage',base:'#6b6863'},
+  'lin-rainier':{name:'Rainier',line:'Trex Transcend Lineage',base:'#9b9993'},
+  'lin-hatteras':{name:'Hatteras',line:'Trex Transcend Lineage',base:'#b7ad9e'},
+  'lin-salt-flat':{name:'Salt Flat',line:'Trex Transcend Lineage',base:'#c9c1b3'},
+  'tx-tiki-torch':{name:'Tiki Torch',line:'Trex Transcend',base:'#9a6a44'},
+  'tx-havana-gold':{name:'Havana Gold',line:'Trex Transcend',base:'#a8794a'},
+  'tx-spiced-rum':{name:'Spiced Rum',line:'Trex Transcend',base:'#7b4a31'},
+  'tx-rope-swing':{name:'Rope Swing',line:'Trex Transcend',base:'#a89273'},
+  'tx-island-mist':{name:'Island Mist',line:'Trex Transcend',base:'#a6a49e'},
+  'tx-lava-rock':{name:'Lava Rock',line:'Trex Transcend',base:'#5a4a40'},
+  'sel-pebble-grey':{name:'Pebble Grey',line:'Trex Select',base:'#8f8b84'},
+  'sel-saddle':{name:'Saddle',line:'Trex Select',base:'#8a6a4e'},
+  'enh-beach-dune':{name:'Beach Dune',line:'Trex Enhance',base:'#b6a68e'},
+  'enh-clam-shell':{name:'Clam Shell',line:'Trex Enhance',base:'#a8a399'},
+  'enh-coastal-bluff':{name:'Coastal Bluff',line:'Trex Enhance',base:'#9b9389'},
+  'enh-foggy-wharf':{name:'Foggy Wharf',line:'Trex Enhance',base:'#898682'},
+  'enh-rocky-harbor':{name:'Rocky Harbor',line:'Trex Enhance',base:'#6e6660'},
+  'enh-tide-pool':{name:'Tide Pool',line:'Trex Enhance',base:'#75716b'},
+  'enh-saddle':{name:'Saddle',line:'Trex Enhance',base:'#8a6a4e'},
+  'enh-honey-grove':{name:'Honey Grove',line:'Trex Enhance',base:'#a2764e'},
+  'pt-cedar':{name:'Cedar-Tone Stain',line:'Pressure-treated pine',base:'#a8703f',dark:'#6e4524',wood:true}
+};
+const LINES=['Trex Signature','Trex Transcend Lineage','Trex Transcend','Trex Select','Trex Enhance','Pressure-treated pine'];
+const LINE_NOTE={'Trex Signature':'Top of the line','Trex Transcend Lineage':'Heat-mitigating, lighter colors','Trex Transcend':'Rich multi-tone colors','Trex Select':'Solid mid-range colors','Trex Enhance':'Best value composite','Pressure-treated pine':'Wood, stain every 2–3 years'};
+function hexShade(h,amt){ const n=parseInt(h.slice(1),16), f=v=>Math.max(0,Math.min(255,Math.round(v+amt))); return '#'+[n>>16,(n>>8)&255,n&255].map(v=>f(v).toString(16).padStart(2,'0')).join(''); }
+// [base, grain, composite?] as the board texture expects
+const boardSpec=id=>{ const d=DECKS[id]; return [d.base, d.dark||hexShade(d.base,-42), !d.wood]; };
+
+/* ---------- Trex railing (systems and colors from Trex railing literature) ---------- */
+const RAILS={
+  'tx-rab':{name:'Transcend + Round Balusters',sub:'Composite rail, aluminum balusters',kind:'bal',ps:4.5,tw:3.5,bw:0.75,step:4,round:true,colors:'tx',infill:['black','white','bronze']},
+  'tx-scb':{name:'Transcend + Square Balusters',sub:'All composite',kind:'bal',ps:4.5,tw:3.5,bw:1.5,step:5.25,colors:'tx',infill:null},
+  'sig-sab':{name:'Signature Square Balusters',sub:'Aluminum',kind:'bal',ps:3,tw:2.6,bw:0.75,step:4,metal:true,colors:'sig',infill:['black','white','bronze']},
+  'sig-rod':{name:'Signature Horizontal Rod',sub:'Aluminum',kind:'rod',ps:3,tw:2.6,metal:true,colors:'sig',infill:['black','platinum']},
+  'sig-glass':{name:'Signature Glass Panels',sub:'Aluminum frame',kind:'glass',ps:3,tw:2.6,metal:true,colors:'sig',infill:null},
+  'wood':{name:'Wood Rail',sub:'4×4 posts, 2×6 cap, 2×2 balusters',kind:'bal',ps:3.5,tw:5.5,bw:1.5,step:5,wood:true,colors:null,infill:null}
+};
+const RCOL={
+  white:{name:'Classic White',hex:'#f4f2ee'}, black:{name:'Charcoal Black',hex:'#1c1c1d'}, bronze:{name:'Bronze',hex:'#4a3b2e'},
+  lantern:{name:'Vintage Lantern',hex:'#5a3e2e'}, gravel:{name:'Gravel Path',hex:'#8b8579'}, platinum:{name:'Platinum',hex:'#b9bbbd'}
+};
+const RCOLS={tx:['white','black','lantern','gravel'], sig:['white','black','bronze']};
+
+/* ---------- Style presets: each one sets every pick at once ---------- */
 const STYLES={
   modern:{
     name:'Trex Classic', mood:'Warm Trex boards framed in crisp white: white fascia and risers, white rail with black balusters, and post-cap lights.',
-    deck:['#9a6a44','#6b452a',true], fascia:['#f4f2ee','#dedad2',true], frame:null,
-    rail:'aluminum', post:'#f4f2ee', top:'#f4f2ee', infill:'#1c1c1d', lights:true, ps:4.5, topW:3.5,
-    mat:[['Decking','Trex Transcend, Tiki Torch','#9a6a44'],['Fascia & risers','White fascia, tight under the deck boards','#f4f2ee'],['Railing','White posts and rail, black balusters','#1c1c1d']],
-    finish:[['Fasteners','Hidden clips, no screw heads'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
+    picks:{deck:'tx-tiki-torch',frame:'none',fascia:'white',rail:'tx-rab',railColor:'white',infill:'black',lights:'on'}
   },
   wood:{
     name:'Classic Wood', mood:'Warm and traditional. Pressure-treated pine in a cedar-tone stain with a matching wood rail and 2×2 balusters.',
-    deck:['#a8703f','#6e4524',false], fascia:['#9b6638','#6e4524',false], frame:null,
-    rail:'wood', post:'#9b6638', top:'#a8703f', infill:'#a06a3b', lights:false,
-    mat:[['Decking','5/4×6 pressure-treated pine, cedar-tone stain','#a8703f'],['Fascia & risers','1×12 pressure-treated, same stain','#9b6638'],['Railing','4×4 posts, 2×6 cap, 2×2 balusters','#a06a3b']],
-    finish:[['Fasteners','Coated deck screws'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Finish','Semi-transparent stain, re-coat every 2–3 yrs'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
+    picks:{deck:'pt-cedar',frame:'none',fascia:'deck',rail:'wood',railColor:'white',infill:'black',lights:'off'}
   },
   coastal:{
-    name:'Coastal Two-Tone', mood:'Light and open. Driftwood-tone boards with a dark picture-frame border, white posts and stainless cable rail for the view.',
-    deck:['#b6a68e','#93836c',true], fascia:['#5a4536','#3f2f24',true], frame:['#5a4536','#3f2f24',true],
-    rail:'cable', post:'#f3f1ec', top:'#f3f1ec', infill:'#c9ccd0', lights:true,
-    mat:[['Decking','Trex Enhance, driftwood tone','#b6a68e'],['Border & fascia','Trex dark walnut-tone picture frame','#5a4536'],['Railing','White posts, stainless cable infill','#f3f1ec']],
-    finish:[['Fasteners','Hidden clips, plugged screws on border'],['Guard','36″ high, cables 3″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
+    name:'Coastal Two-Tone', mood:'Light and open. Light Trex boards with a dark picture-frame border, slim aluminum posts and horizontal rods that keep the view open.',
+    picks:{deck:'enh-beach-dune',frame:'tx-lava-rock',fascia:'frame',rail:'sig-rod',railColor:'white',infill:'platinum',lights:'on'}
   }
 };
+const cfg={style:'modern',...STYLES.modern.picks};
+const FASCIA={white:{name:'White trim board',sub:'Crisp white fascia and risers'},deck:{name:'Match the decking',sub:'Same color as the boards'},frame:{name:'Match the border',sub:'Same color as the border'}};
+function design(){
+  const B=STYLES[cfg.style], R=RAILS[cfg.rail], d=DECKS[cfg.deck], fr=cfg.frame==='none'?null:DECKS[cfg.frame];
+  const deck=boardSpec(cfg.deck), frame=fr?boardSpec(cfg.frame):null;
+  const fascia=cfg.fascia==='white'?['#f4f2ee','#dedad2',true]:(cfg.fascia==='frame'&&frame?frame:deck);
+  const rc=R.wood?null:RCOL[cfg.railColor], ic=R.infill?RCOL[cfg.infill]:null;
+  const post=R.wood?'#9b6638':rc.hex, infill=R.wood?'#a06a3b':(ic?ic.hex:rc.hex);
+  const lights=cfg.lights==='on';
+  const railDesc=R.wood?'4×4 posts, 2×6 cap, 2×2 balusters, stained to match':
+    `${R.name.startsWith('Transcend')?'Trex Transcend':'Trex Signature'} in ${rc.name}${R.kind==='glass'?', glass panels':R.kind==='rod'?`, ${ic.name.toLowerCase()} horizontal rods`:ic?`, ${ic.name.toLowerCase()} ${R.round?'round':'square'} aluminum balusters`:', matching square composite balusters'}`;
+  const fasDesc=cfg.fascia==='white'?'White fascia and risers, tight under the deck boards':cfg.fascia==='frame'&&fr?`${fr.line} ${fr.name} fascia and risers`:`${d.line} ${d.name} fascia and risers`;
+  const mat=[['Decking',`${d.line}, ${d.name}`,d.base]];
+  if(fr) mat.push(['Picture-frame border',`${fr.line}, ${fr.name}`,fr.base]);
+  mat.push(['Fascia & risers',fasDesc,fascia[0]],['Railing',railDesc,R.wood?'#a06a3b':infill]);
+  const finish=[['Fasteners',d.wood?'Coated deck screws':(fr?'Hidden clips, plugged screws on the border':'Hidden clips, no screw heads')],
+    ['Guard',R.kind==='rod'?'36″ high, rods under 4″ apart':R.kind==='glass'?'36″ high, tempered glass panels':'36″ high, balusters under 4″ apart'],
+    ['Stairs','4 treads, 48″ wide, with handrail'],['Lighting',lights?'Post-cap lights':'None (post-cap lights optional)']];
+  if(d.wood) finish.push(['Finish','Semi-transparent stain, re-coat every 2–3 yrs']);
+  finish.push(['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']);
+  return {name:B.name, mood:B.mood, deck, frame, fascia, rail:R.wood?'wood':R.kind, R, post, top:post, infill, lights, ps:R.ps, topW:R.tw, mat, finish};
+}
+const custom=()=>{ const p=STYLES[cfg.style].picks; return Object.keys(p).some(k=>p[k]!==cfg[k]); };
 const CODE=['Permit drawings and township approval','Footings below frost depth, inspected before concrete','Ledger flashed and bolted to the house to keep water out','Framing inspection before the decking goes down','Guards 36″ high with openings under 4″','Even stair risers and a graspable handrail','Final inspection and approval'];
 
 /* ---------- Three.js setup ---------- */
@@ -216,9 +343,9 @@ const yardMat=std({color:'#3b4731',roughness:1}); let yardEdge=null;
   add(40,50,1.2,trim,-36,DH+52,0.4); add(36,46,1.4,glass,-36,DH+52,0.6); add(36,1.4,1.8,trim,-36,DH+52,0.8);
 })();
 
-function build(key){
+function build(){
   scene.remove(grp); grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); grp=new THREE.Group(); scene.add(grp);
-  const S=STYLES[key];
+  const S=design(), R=S.R;
   const boardMat=(c,len,seed)=>{ const t=grainTex(c[0],c[1],seed,c[2]); t.repeat.set(1,1); return std({map:t,roughness:c[2]?0.65:0.8}); };
   const pt=std({color:'#6f6449',roughness:0.85}), ptDark=std({color:'#5f553d',roughness:0.85});
   const concrete=std({color:'#b9b6ae',roughness:0.95});
@@ -314,13 +441,17 @@ function build(key){
 
   // guards on the open sides
   skin=true;
-  const postMat=std({color:S.post,roughness:S.rail==='aluminum'?0.45:0.7,metalness:S.rail==='aluminum'?0.3:0});
-  const topMat=S.rail==='wood'?boardMat(['#a8703f','#6e4524',false],96,41):std({color:S.top,roughness:0.5,metalness:S.rail==='aluminum'?0.3:0});
-  const inMat=S.rail==='cable'?std({color:S.infill,metalness:0.9,roughness:0.25}):std({color:S.infill,roughness:S.rail==='aluminum'?0.45:0.75,metalness:S.rail==='aluminum'?0.3:0});
-  const PS=S.ps||(S.rail==='aluminum'?3:(S.rail==='wood'?3.5:4.5)), GT=DH+36, TW=S.topW||(S.rail==='wood'?5.5:2.6);
+  const met=R.metal?0.35:0;
+  const postMat=std({color:S.post,roughness:R.metal?0.42:0.6,metalness:met});
+  const topMat=S.rail==='wood'?boardMat(['#a8703f','#6e4524',false],96,41):std({color:S.top,roughness:R.metal?0.42:0.55,metalness:met});
+  const inMat=std({color:S.infill,roughness:R.wood?0.75:0.42,metalness:R.wood?0:0.35});
+  const glassMat=new THREE.MeshPhysicalMaterial({color:0xd8ece9,roughness:0.05,metalness:0.1,transparent:true,opacity:0.3,side:THREE.DoubleSide,depthWrite:false}), glassEdge=new THREE.LineBasicMaterial({color:0xa9c9c6});
+  const PS=S.ps, GT=DH+36, TW=S.topW, BALW=R.bw||0.75, STEP=R.step||4;
+  // one baluster: round aluminum when the system calls for it
+  const baluster=(h,x,y,z)=>R.round?cyl(BALW/2,h,inMat,x,y,z,10):box(BALW,h,BALW,inMat,x,y,z);
   const posts=[];
   const post=(x,z,base,top)=>{ box(PS,top-base,PS,postMat,x,(top+base)/2,z); posts.push([x,z,top]);
-    if(S.rail!=='aluminum'&&base<DH){ const yy=[DH-4.5,DH-9];
+    if(base<DH){ const yy=[DH-4.5,DH-9];
       if(Math.abs(z-(DD-inset))<0.1) yy.forEach(y=>bolt(x,y,DD+0.76,'z',1));
       else if(x<DL/2) yy.forEach(y=>bolt(-0.76,y,z,'x',-1)); else yy.forEach(y=>bolt(DL+0.76,y,z,'x',1)); }
     box(PS+1,1,PS+1,postMat,x,top+0.5,z);
@@ -331,12 +462,14 @@ function build(key){
     const mx=(ax+bx)/2, mz=(az+bz)/2;
     const rail=(y,h,w)=> alongX? box(len,h,w,topMat,mx,y,mz) : box(w,h,len,topMat,mx,y,mz);
     rail(GT-0.75,1.5,TW);
-    if(S.rail!=='cable'){ rail(DH+3.5,1.5,S.rail==='wood'?3.5:1.6);
+    if(S.rail!=='rod'){ rail(DH+3.5,1.5,S.rail==='wood'?3.5:1.6);
       // support blocks carry the bottom rail down to the decking so nothing floats
       const nb=Math.max(1,Math.round(len/48)); for(let k=1;k<=nb;k++){ const o=-len/2+k*len/(nb+1); alongX? box(1.5,2.75,1.5,topMat,mx+o,DH+1.375,mz) : box(1.5,2.75,1.5,topMat,mx,DH+1.375,mz+o); } }
-    if(S.rail==='cable'){ for(let y=DH+4;y<GT-2;y+=3) (alongX? box(len,0.25,0.25,inMat,mx,y,mz) : box(0.25,0.25,len,inMat,mx,y,mz)); }
-    else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75; const n=Math.floor(len/step); const s0=-((n-1)*step)/2;
-      for(let i=0;i<n;i++){ const o=s0+i*step; alongX? box(bw,GT-DH-5.25,bw,inMat,mx+o,(GT+DH+2.75)/2,mz) : box(bw,GT-DH-5.25,bw,inMat,mx,(GT+DH+2.75)/2,mz+o); } }
+    if(S.rail==='rod'){ for(let y=DH+4;y<GT-2;y+=3.5){ const c=cyl(0.25,len,inMat,mx,y,mz,10); c.rotation[alongX?'z':'x']=Math.PI/2; } }
+    else if(S.rail==='glass'){ const gh=GT-DH-7, gy=(GT+DH+2.75)/2, gl=len-3; const g=alongX? box(gl,gh,0.4,glassMat,mx,gy,mz) : box(0.4,gh,gl,glassMat,mx,gy,mz);
+      g.castShadow=false; g.add(new THREE.LineSegments(new THREE.EdgesGeometry(g.geometry),glassEdge)); }
+    else { const n=Math.floor(len/STEP); const s0=-((n-1)*STEP)/2;
+      for(let i=0;i<n;i++){ const o=s0+i*STEP; alongX? baluster(GT-DH-5.25,mx+o,(GT+DH+2.75)/2,mz) : baluster(GT-DH-5.25,mx,(GT+DH+2.75)/2,mz+o); } }
   }
   const zf=DD-inset, xl=inset, xr=DL-inset;
   const sxl=ST_X0-0.75-PS/2, sxr=ST_X1+0.75+PS/2;
@@ -350,28 +483,33 @@ function build(key){
     box(PS,railAt(zb)+1,PS,postMat,x,(railAt(zb)+1)/2,zb); box(PS+1,1,PS+1,postMat,x,railAt(zb)+1.5,zb);
     const a=V(x,railAt(zf+PS/2)-0.75,zf+PS/2), b=V(x,railAt(zb-PS/2)-0.75,zb-PS/2);
     bar(a,b,S.rail==='wood'?3.5:TW,1.5,topMat);
-    if(S.rail==='cable'){ for(let k=1;k<=9;k++){ const dy=k*3; bar(V(x,a.y-dy,a.z),V(x,b.y-dy,b.z),0.25,0.25,inMat); } }
-    else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75;
+    if(S.rail==='rod'){ for(let k=1;k<=8;k++){ const dy=k*3.5; bar(V(x,a.y-dy,a.z),V(x,b.y-dy,b.z),0.5,0.5,inMat); } }
+    else { const step=S.rail==='glass'?9999:STEP, bw=BALW;
       // sloped bottom rail parallel to the handrail, about 4" above the tread nosings
       const botAt=z=>DH-((z-DD)/RUN)*RISE+4.5;
       bar(V(x,botAt(zf+PS/2),zf+PS/2),V(x,botAt(zb-PS/2),zb-PS/2),S.rail==='wood'?3.5:1.6,1.5,topMat);
-      for(let z=zf+PS/2+step/2;z<zb-PS/2;z+=step){ const top=railAt(z)-1.25, bot=botAt(z)+0.5; box(bw,top-bot,bw,inMat,x,(top+bot)/2,z); } }
+      for(let z=zf+PS/2+step/2;z<zb-PS/2;z+=step){ const top=railAt(z)-1.25, bot=botAt(z)+0.5; baluster(top-bot,x,(top+bot)/2,z); }
+      if(S.rail==='glass'){ // sloped glass panel between the stair rails
+        const z0=zf+PS/2+1.5, z1=zb-PS/2-1.5, sh=new THREE.Shape(); sh.moveTo(z0,botAt(z0)+1.5); sh.lineTo(z1,botAt(z1)+1.5); sh.lineTo(z1,railAt(z1)-2.5); sh.lineTo(z0,railAt(z0)-2.5); sh.lineTo(z0,botAt(z0)+1.5);
+        const g=new THREE.Mesh(new THREE.ShapeGeometry(sh),glassMat); g.rotation.y=-Math.PI/2; g.position.x=x; g.userData.skin=true; grp.add(g);
+        const e=new THREE.LineSegments(new THREE.EdgesGeometry(g.geometry),glassEdge); g.add(e); } }
   }
 
   skin=false; showSkin();
   // side panel
-  document.getElementById('s-name').textContent=S.name;
+  document.getElementById('s-name').textContent=custom()?'Your design':S.name;
   document.getElementById('s-mood').textContent=S.mood;
   document.getElementById('s-mat').innerHTML=S.mat.map(([a,b,c])=>`<li><span class="sw" style="background:${c}"></span><div><div class="what">${a}</div><div class="where">${b}</div></div></li>`).join('');
   document.getElementById('s-finish').innerHTML=S.finish.map(([a,b])=>`<div><span>${a}</span><span>${b}</span></div>`).join('');
   document.getElementById('s-code').innerHTML=CODE.map(c=>`<li>${c}</li>`).join('');
-  drawPlan(key);
+  drawPlan(S);
+  syncPanel();
 }
 
 /* ---------- 2D dimensioned framing plan (house at top, yard at bottom) ---------- */
 function ftin(i){ const f=Math.floor(i/12), r=Math.round(i-f*12); return f? `${f}′-${r}″` : `${r}″`; }
-function drawPlan(key){
-  const S=STYLES[key], svg=document.getElementById('plan-svg'), ink='#fff', mut='#94a3b8', o=[];
+function drawPlan(S){
+  const svg=document.getElementById('plan-svg'), ink='#fff', mut='#94a3b8', o=[];
   const FS=6;
   const rect=(x,y,w,h,a)=>o.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" ${a||''}/>`);
   const line=(x1,y1,x2,y2,a)=>o.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${a||''}/>`);
@@ -435,11 +573,94 @@ function setView(k,instant){
 }
 document.querySelectorAll('.views button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
 document.querySelectorAll('.style-btn').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.style-btn').forEach(x=>x.setAttribute('aria-pressed',x===b)); build(b.dataset.style);
+  document.querySelectorAll('.style-btn').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  Object.assign(cfg,{style:b.dataset.style},STYLES[b.dataset.style].picks); build();
 }));
+
+/* ---------- customize panel ---------- */
+const CATS=[['deck','Decking'],['frame','Border'],['fascia','Fascia'],['rail','Railing'],['color','Rail color']];
+let cat='deck';
+const thumbs={};
+// a few boards side by side, drawn with the same grain as the 3D boards
+function boardThumb(id){
+  if(thumbs[id]) return thumbs[id];
+  const sp=boardSpec(id), src=grainTex(sp[0],sp[1],11+id.length,sp[2]).image, c=document.createElement('canvas'); c.width=c.height=200; const g=c.getContext('2d');
+  g.fillStyle='#1a1410'; g.fillRect(0,0,200,200);
+  for(let i=0;i<5;i++) g.drawImage(src,(i*137)%600,0,420,128,0,i*40+1,200,38);
+  return thumbs[id]=c.toDataURL('image/jpeg',0.85);
+}
+const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const card=(k,v,on,th,nm,sub,round)=>`<button class="card" data-k="${k}" data-v="${v}" aria-pressed="${on}"><span class="th${round?' round':''}" ${th.startsWith('<')?'':`style="background:${th}"`}>${th.startsWith('<')?th:''}</span><span class="nm">${esc(nm)}</span>${sub?`<span class="sub">${esc(sub)}</span>`:''}</button>`;
+function railIcon(k){
+  const R=RAILS[k], w=R.wood?'#a06a3b':'#f4f2ee', inf=R.wood?'#a06a3b':'#cbd5e1', o=[];
+  o.push(`<rect x="10" y="20" width="${R.ps*1.6}" height="56" fill="${w}"/><rect x="${78-R.ps*1.6}" y="20" width="${R.ps*1.6}" height="56" fill="${w}"/><rect x="8" y="16" width="72" height="${R.tw*1.4}" fill="${w}"/>`);
+  if(R.kind==='rod') for(let y=26;y<72;y+=6) o.push(`<line x1="14" y1="${y}" x2="74" y2="${y}" stroke="${inf}" stroke-width="1.6"/>`);
+  else if(R.kind==='glass') o.push(`<rect x="${12+R.ps*1.6}" y="26" width="${64-R.ps*3.2}" height="42" fill="rgba(207,231,229,.35)" stroke="#cfe7e5"/>`,`<rect x="10" y="70" width="68" height="2.4" fill="${w}"/>`);
+  else { o.push(`<rect x="10" y="70" width="68" height="2.4" fill="${w}"/>`); for(let x=20;x<70;x+=R.step*1.5) o.push(R.round?`<line x1="${x}" y1="22" x2="${x}" y2="70" stroke="${inf}" stroke-width="1.6" stroke-linecap="round"/>`:`<rect x="${x-R.bw}" y="22" width="${R.bw*2}" height="48" fill="${inf}"/>`); }
+  return `<svg viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#0b0d10"/><line x1="0" y1="76" x2="88" y2="76" stroke="#94a3b8"/>${o.join('')}</svg>`;
+}
+function fasciaIcon(k){
+  const d=DECKS[cfg.deck].base, f=cfg.frame==='none'?d:DECKS[cfg.frame].base, c=k==='white'?'#f4f2ee':k==='frame'?f:d;
+  return `<svg viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#0b0d10"/><rect x="8" y="30" width="72" height="8" fill="${cfg.frame==='none'?d:f}"/><rect x="10" y="38" width="68" height="18" fill="${c}"/><rect x="18" y="56" width="6" height="26" fill="#6f6449"/><rect x="64" y="56" width="6" height="26" fill="#6f6449"/></svg>`;
+}
+function lightIcon(on){ return `<svg viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#0b0d10"/><rect x="36" y="34" width="16" height="46" fill="#f4f2ee"/><rect x="32" y="28" width="24" height="7" fill="#f4f2ee"/>${on?'<rect x="35" y="35" width="18" height="3" fill="#ffdca0"/><circle cx="44" cy="40" r="16" fill="#ffdca0" opacity=".18"/>':''}</svg>`; }
+function renderOpts(){
+  const o=[];
+  if(cat==='deck'||cat==='frame'){
+    if(cat==='frame'){ o.push(`<p class="grp">Picture-frame border</p><div class="cards">`+card('frame','none',cfg.frame==='none','<svg viewBox="0 0 88 88" aria-hidden="true"><rect width="88" height="88" fill="#0b0d10"/><line x1="24" y1="24" x2="64" y2="64" stroke="#94a3b8" stroke-width="2"/><line x1="64" y1="24" x2="24" y2="64" stroke="#94a3b8" stroke-width="2"/></svg>','No border','Field boards to the edge')+'</div>'); }
+    for(const ln of LINES){ const ids=Object.keys(DECKS).filter(k=>DECKS[k].line===ln&&(cat==='deck'||!DECKS[k].wood)); if(!ids.length) continue;
+      o.push(`<p class="grp">${ln} · ${LINE_NOTE[ln]}</p><div class="cards">`);
+      for(const id of ids) o.push(card(cat,id,cfg[cat]===id,`url(${boardThumb(id)})`,DECKS[id].name));
+      o.push('</div>'); }
+    if(cat==='frame') o.push('<p class="p-note">A border in a second color runs around the edge and hides the board ends.</p>');
+  } else if(cat==='fascia'){
+    o.push('<p class="grp">Fascia and stair risers</p><div class="cards">');
+    for(const k in FASCIA){ if(k==='frame'&&cfg.frame==='none') continue; o.push(card('fascia',k,cfg.fascia===k,fasciaIcon(k),FASCIA[k].name,FASCIA[k].sub)); }
+    o.push('</div>');
+  } else if(cat==='rail'){
+    o.push('<p class="grp">Railing system</p><div class="cards">');
+    for(const k in RAILS) o.push(card('rail',k,cfg.rail===k,railIcon(k),RAILS[k].name,RAILS[k].sub));
+    o.push('</div><p class="grp">Post-cap lights</p><div class="cards">'+card('lights','on',cfg.lights==='on',lightIcon(true),'Lights on')+card('lights','off',cfg.lights==='off',lightIcon(false),'No lights')+'</div>');
+  } else {
+    const R=RAILS[cfg.rail];
+    if(R.wood){ o.push('<p class="p-note">The wood rail is stained to match the decking. Pick a Trex railing system to choose colors.</p>'); }
+    else {
+      o.push(`<p class="grp">Posts and rails · ${R.colors==='tx'?'Trex Transcend':'Trex Signature'}</p><div class="cards">`);
+      for(const k of RCOLS[R.colors]) o.push(card('railColor',k,cfg.railColor===k,RCOL[k].hex,RCOL[k].name,'',true));
+      o.push('</div>');
+      if(R.infill){ o.push(`<p class="grp">${R.kind==='rod'?'Rods':'Balusters'}</p><div class="cards">`); for(const k of R.infill) o.push(card('infill',k,cfg.infill===k,RCOL[k].hex,RCOL[k].name,'',true)); o.push('</div>'); }
+      else o.push(`<p class="p-note">${R.kind==='glass'?'Tempered glass panels sit in the frame.':'Square composite balusters match the rail color.'}</p>`);
+    }
+  }
+  document.getElementById('opts').innerHTML=o.join('');
+}
+function renderCats(){ document.getElementById('cats').innerHTML=CATS.map(([k,n])=>`<button class="cat" role="tab" data-cat="${k}" aria-selected="${cat===k}">${n}</button>`).join(''); }
+function syncPanel(){
+  const S=STYLES[cfg.style];
+  document.getElementById('p-mix').textContent=custom()?`${S.name}, customized`:S.name;
+  document.getElementById('p-reset').disabled=!custom();
+  renderOpts();
+}
+// keep the picks valid together: rail colors depend on the system, a matching border fascia needs a border
+function fix(){ const R=RAILS[cfg.rail];
+  if(R.colors&&!RCOLS[R.colors].includes(cfg.railColor)) cfg.railColor='white';
+  if(R.infill&&!R.infill.includes(cfg.infill)) cfg.infill=R.infill[0];
+  if(cfg.fascia==='frame'&&cfg.frame==='none') cfg.fascia='deck'; }
+document.getElementById('cats').addEventListener('click',e=>{ const b=e.target.closest('.cat'); if(!b) return; cat=b.dataset.cat; renderCats(); renderOpts(); b.focus(); });
+document.getElementById('opts').addEventListener('click',e=>{ const b=e.target.closest('.card'); if(!b||cfg[b.dataset.k]===b.dataset.v) return;
+  cfg[b.dataset.k]=b.dataset.v; if(b.dataset.k==='frame'&&b.dataset.v!=='none'&&cfg.fascia==='deck') cfg.fascia='frame'; fix();
+  const y=document.getElementById('opts').scrollTop; build(); document.getElementById('opts').scrollTop=y;
+  const nb=document.querySelector(`.card[data-k="${b.dataset.k}"][data-v="${b.dataset.v}"]`); if(nb) nb.focus({preventScroll:true}); });
+document.getElementById('p-reset').addEventListener('click',()=>{ Object.assign(cfg,STYLES[cfg.style].picks); build(); });
+function summary(){ const S=design();
+  return [`Henry's Improvements deck design: ${STYLES[cfg.style].name}${custom()?' (customized)':''}`, ...S.mat.map(([a,b])=>`${a}: ${b}`), `Lighting: ${cfg.lights==='on'?'Post-cap lights':'None'}`].join('\n'); }
+document.getElementById('p-copy').addEventListener('click',async e=>{ const b=e.currentTarget, t=summary(); let ok=false;
+  try{ await navigator.clipboard.writeText(t); ok=true; }catch(err){ try{ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); ok=document.execCommand('copy'); ta.remove(); }catch(e2){} }
+  b.textContent=ok?'Copied. Paste it in your quote request':'Copy did not work on this browser'; setTimeout(()=>b.textContent='Copy my selections',3200); });
+renderCats();
 function resize(){ const w=stage.clientWidth, h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
 new ResizeObserver(resize).observe(stage);
-build('modern'); resize(); setView('over',true);
+build(); resize(); setView('over',true);
 (function loop(now){ requestAnimationFrame(loop); if(anim) anim(now); controls.update(); renderer.render(scene,camera); })(performance.now());
 })();
 </script>
