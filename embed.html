@@ -205,7 +205,7 @@ const yardMat=std({color:'#3b4731',roughness:1}); let yardEdge=null;
 function build(key){
   scene.remove(grp); grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); grp=new THREE.Group(); scene.add(grp);
   const S=STYLES[key];
-  const boardMat=(c,len,seed)=>{ const t=grainTex(c[0],c[1],seed,c[2]); t.repeat.set(len/96,1); return std({map:t,roughness:c[2]?0.65:0.8}); };
+  const boardMat=(c,len,seed)=>{ const t=grainTex(c[0],c[1],seed,c[2]); t.repeat.set(1,1); return std({map:t,roughness:c[2]?0.65:0.8}); };
   const pt=std({color:'#6f6449',roughness:0.85}), ptDark=std({color:'#5f553d',roughness:0.85});
   const concrete=std({color:'#b9b6ae',roughness:0.95});
   const deckTop=DH, joistTop=DH-1;
@@ -257,8 +257,10 @@ function build(key){
   box(0.75,FH,DD+0.75,fx,-0.375,fy,(DD+0.75)/2); box(0.75,FH,DD+0.75,fx,DL+0.375,fy,(DD+0.75)/2);
 
   // decking: 5.5" boards with 3/16" gaps, 1" overhang; optional picture-frame border
-  const BW=5.5, GAP=0.1875, OV=1.5; // boards overhang the fascia face by 3/4"
+  const BW=5.5, GAP=0.125, OV=1.5; // boards overhang the fascia face by 3/4"
   const field=boardMat(S.deck,DL,11);
+  // dark underlay so the board gaps read as tight shadow lines, not bright stripes of framing showing through
+  box(DL+2*OV,0.1,DD+OV,std({color:'#1a1410',roughness:1}),DL/2,deckTop-0.99,(DD+OV)/2);
   if(S.frame){
     const fr=boardMat(S.frame,DL,21), frz=boardMat(S.frame,DD,22);
     box(DL+2*OV,1,BW,fr,DL/2,deckTop-0.5,DD+OV-BW/2);              // front border
@@ -315,10 +317,12 @@ function build(key){
     const mx=(ax+bx)/2, mz=(az+bz)/2;
     const rail=(y,h,w)=> alongX? box(len,h,w,topMat,mx,y,mz) : box(w,h,len,topMat,mx,y,mz);
     rail(GT-0.75,1.5,TW);
-    if(S.rail!=='cable') rail(DH+3.5,1.5,S.rail==='wood'?3.5:1.6);
+    if(S.rail!=='cable'){ rail(DH+3.5,1.5,S.rail==='wood'?3.5:1.6);
+      // support blocks carry the bottom rail down to the decking so nothing floats
+      const nb=Math.max(1,Math.round(len/48)); for(let k=1;k<=nb;k++){ const o=-len/2+k*len/(nb+1); alongX? box(1.5,2.75,1.5,topMat,mx+o,DH+1.375,mz) : box(1.5,2.75,1.5,topMat,mx,DH+1.375,mz+o); } }
     if(S.rail==='cable'){ for(let y=DH+4;y<GT-2;y+=3) (alongX? box(len,0.25,0.25,inMat,mx,y,mz) : box(0.25,0.25,len,inMat,mx,y,mz)); }
     else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75; const n=Math.floor(len/step); const s0=-((n-1)*step)/2;
-      for(let i=0;i<n;i++){ const o=s0+i*step; alongX? box(bw,GT-DH-6.5,bw,inMat,mx+o,(GT+DH+2.5)/2,mz) : box(bw,GT-DH-6.5,bw,inMat,mx,(GT+DH+2.5)/2,mz+o); } }
+      for(let i=0;i<n;i++){ const o=s0+i*step; alongX? box(bw,GT-DH-5.25,bw,inMat,mx+o,(GT+DH+2.75)/2,mz) : box(bw,GT-DH-5.25,bw,inMat,mx,(GT+DH+2.75)/2,mz+o); } }
   }
   const zf=DD-inset, xl=inset, xr=DL-inset;
   const sxl=ST_X0-0.75-PS/2, sxr=ST_X1+0.75+PS/2;
@@ -334,7 +338,10 @@ function build(key){
     bar(a,b,S.rail==='wood'?3.5:TW,1.5,topMat);
     if(S.rail==='cable'){ for(let k=1;k<=9;k++){ const dy=k*3; bar(V(x,a.y-dy,a.z),V(x,b.y-dy,b.z),0.25,0.25,inMat); } }
     else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75;
-      for(let z=zf+PS/2+step/2;z<zb-PS/2;z+=step){ const top=railAt(z)-1.5, bot=Math.max(0.5,DH-((z-DD)/RUN)*RISE+1); if(top-bot>4) box(bw,top-bot,bw,inMat,x,(top+bot)/2,z); } }
+      // sloped bottom rail parallel to the handrail, about 4" above the tread nosings
+      const botAt=z=>DH-((z-DD)/RUN)*RISE+4.5;
+      bar(V(x,botAt(zf+PS/2),zf+PS/2),V(x,botAt(zb-PS/2),zb-PS/2),S.rail==='wood'?3.5:1.6,1.5,topMat);
+      for(let z=zf+PS/2+step/2;z<zb-PS/2;z+=step){ const top=railAt(z)-1.25, bot=botAt(z)+0.5; box(bw,top-bot,bw,inMat,x,(top+bot)/2,z); } }
   }
 
   skin=false; showSkin();
