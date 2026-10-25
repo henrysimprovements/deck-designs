@@ -65,18 +65,21 @@ html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-w
 .sp-row>div:first-child{border-left:0}
 @media (max-width:760px){.sp-row{grid-template-columns:minmax(0,1fr)}.sp-row>div{border-left:0;border-top:1px solid var(--line-2)}.sp-row>div:first-child{border-top:0}}
 .plan-layer{padding:58px 14px 14px}
+.suppliers{display:flex;flex-wrap:wrap;gap:10px 30px;align-items:center;justify-content:center;padding:18px 22px;border-top:1px solid rgba(255,255,255,0.10)}
+.sup-lab{font-size:.68rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:#94a3b8}
+.brand{font-weight:800;font-size:.84rem;letter-spacing:.14em;text-transform:uppercase;color:#fff}
 .err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}
 </style>
 </head><body>
 <div class="dz" id="dz">
   <div class="tabs" role="group" aria-label="Choose a style">
-    <button class="style-btn" data-style="modern" aria-pressed="true">Modern Composite</button>
+    <button class="style-btn" data-style="modern" aria-pressed="true">Trex Classic</button>
     <button class="style-btn" data-style="wood" aria-pressed="false">Classic Wood</button>
     <button class="style-btn" data-style="coastal" aria-pressed="false">Coastal Two-Tone</button>
   </div>
   <p class="mood" id="s-mood"></p>
   <div class="stage" id="stage">
-    <div class="badge"><b>16′×12′</b> <span id="s-name">Modern Composite</span></div>
+    <div class="badge"><b>16′×12′</b> <span id="s-name">Trex Classic</span></div>
     <div class="mode" role="group" aria-label="View mode">
       <button class="pill" id="m-3d" aria-pressed="true">3D</button>
       <button class="pill" id="m-plan" aria-pressed="false">Framing plan</button>
@@ -94,6 +97,7 @@ html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-w
     <div><p class="lab">Railing &amp; details</p><div class="finish" id="s-finish"></div></div>
     <div><p class="lab">What we handle</p><ul id="s-code"></ul></div>
   </div>
+  <div class="suppliers" aria-label="Our suppliers"><span class="sup-lab">Decking &amp; railing from</span><span class="brand">Trex</span></div>
   <p class="foot">Sample 16′×12′ deck, 3′ off the ground. Your design is drawn to your yard's real measurements, with the decking and railing you pick.</p>
 </div>
 
@@ -129,10 +133,10 @@ function sidingTex(base){
 /* ---------- Styles (generic, widely stocked products) ---------- */
 const STYLES={
   modern:{
-    name:'Modern Composite', mood:'Low maintenance and sharp. Gray composite boards with hidden fasteners, black aluminum railing and post-cap lights.',
-    deck:['#77756f','#5a5853',true], fascia:['#6c6a65','#55534e',true], frame:null,
-    rail:'aluminum', post:'#1c1c1d', top:'#1c1c1d', infill:'#1c1c1d', lights:true,
-    mat:[['Decking','Gray composite, grooved edge','#77756f'],['Fascia & risers','Matching composite fascia','#6c6a65'],['Railing','Black powder-coated aluminum','#1c1c1d']],
+    name:'Trex Classic', mood:'Warm Trex boards framed in crisp white: white fascia and risers, white rail with black balusters, and post-cap lights.',
+    deck:['#9a6a44','#6b452a',true], fascia:['#f4f2ee','#dedad2',true], frame:null,
+    rail:'aluminum', post:'#f4f2ee', top:'#f4f2ee', infill:'#1c1c1d', lights:true, ps:4.5, topW:3.5,
+    mat:[['Decking','Trex Transcend, Tiki Torch','#9a6a44'],['Fascia & risers','White fascia, tight under the deck boards','#f4f2ee'],['Railing','White posts and rail, black balusters','#1c1c1d']],
     finish:[['Fasteners','Hidden clips, no screw heads'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
   },
   wood:{
@@ -146,7 +150,7 @@ const STYLES={
     name:'Coastal Two-Tone', mood:'Light and open. Driftwood-tone boards with a dark picture-frame border, white posts and stainless cable rail for the view.',
     deck:['#b6a68e','#93836c',true], fascia:['#5a4536','#3f2f24',true], frame:['#5a4536','#3f2f24',true],
     rail:'cable', post:'#f3f1ec', top:'#f3f1ec', infill:'#c9ccd0', lights:true,
-    mat:[['Decking','Driftwood-tone composite','#b6a68e'],['Border & fascia','Dark walnut-tone picture frame','#5a4536'],['Railing','White posts, stainless cable infill','#f3f1ec']],
+    mat:[['Decking','Trex Enhance, driftwood tone','#b6a68e'],['Border & fascia','Trex dark walnut-tone picture frame','#5a4536'],['Railing','White posts, stainless cable infill','#f3f1ec']],
     finish:[['Fasteners','Hidden clips, plugged screws on border'],['Guard','36″ high, cables 3″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
   }
 };
@@ -248,11 +252,12 @@ function build(key){
   // fascia on the outside rim and both ends
   skin=true;
   const fz=boardMat(S.fascia,DL,5), fx=boardMat(S.fascia,DD,6);
-  box(DL+1.5,11.25,0.75,fz,DL/2,joistTop-JH/2-0.5,DD+0.38);
-  box(0.75,11.25,DD,fx,-0.38,joistTop-JH/2-0.5,DD/2); box(0.75,11.25,DD,fx,DL+0.38,joistTop-JH/2-0.5,DD/2);
+  const FH=11.25, fy=joistTop-FH/2;   // top of fascia tight to the underside of the deck boards
+  box(ST_X0+0.75,FH,0.75,fz,(ST_X0-0.75)/2,fy,DD+0.375); box(DL+0.75-ST_X1,FH,0.75,fz,(ST_X1+DL+0.75)/2,fy,DD+0.375);
+  box(0.75,FH,DD+0.75,fx,-0.375,fy,(DD+0.75)/2); box(0.75,FH,DD+0.75,fx,DL+0.375,fy,(DD+0.75)/2);
 
   // decking: 5.5" boards with 3/16" gaps, 1" overhang; optional picture-frame border
-  const BW=5.5, GAP=0.1875, OV=1;
+  const BW=5.5, GAP=0.1875, OV=1.5; // boards overhang the fascia face by 3/4"
   const field=boardMat(S.deck,DL,11);
   if(S.frame){
     const fr=boardMat(S.frame,DL,21), frz=boardMat(S.frame,DD,22);
@@ -265,28 +270,38 @@ function build(key){
     for(let z=0.5;z<DD+OV-0.5;z+=BW+GAP){ const w=Math.min(BW,DD+OV-z); box(DL+2*OV,1,w,field,DL/2,deckTop-0.5,z+w/2); }
   }
 
-  // stairs: 3 stringers, treads of two boards, risers in fascia
-  const treadMat=boardMat(S.frame||S.deck,ST_W,31), riserMat=boardMat(S.fascia,ST_W,32);
+  // stairs: notched stringers sit under the treads, white skirt boards hide the outside stringers
+  const treadMat=boardMat(S.frame||S.deck,ST_W,31), riserMat=boardMat(S.fascia,ST_W,32), skirtMat=boardMat(S.fascia,60,33);
+  const ZB=DD+ST_LEN;                 // bottom plumb cut, just behind the bottom riser
+  function profile(pts){ const sh=new THREE.Shape(); pts.forEach((p,k)=>k?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1])); return sh; }
+  function sideMesh(sh,mat,x,th){ const g=new THREE.ExtrudeGeometry(sh,{depth:th,bevelEnabled:false}); const m=new THREE.Mesh(g,mat);
+    m.rotation.y=-Math.PI/2; m.position.set(x+th/2,0,0); m.castShadow=m.receiveShadow=true; m.userData.skin=skin; grp.add(m); return m; }
+  const saw=[[DD,DH-1-RISE-11]];
+  for(let i=1;i<NR;i++){ const y=DH-RISE*i-1; saw.push([DD+(i-1)*RUN,y],[DD+i*RUN,y]); }
+  saw.push([ZB,0],[ZB-9,0]);
   skin=false;
-  for(const x of [ST_X0+1,ST_X0+ST_W/2,ST_X1-1]){
-    bar(V(x,DH-RISE-5,DD+0.75),V(x,0.5,DD+ST_LEN+4),1.5,9.25,pt);
-    box(0.12,6,2,steel,x+1,DH-RISE-2,DD+1.1); box(2,6,0.12,steel,x+1.9,DH-RISE-2,DD+0.06);
+  for(const x of [ST_X0+0.75,ST_X0+ST_W/2,ST_X1-0.75]){
+    sideMesh(profile(saw),pt,x,1.5);
+    box(0.12,6,2,steel,x+0.81,DH-RISE-5,DD+1.1); box(2,6,0.12,steel,x+1.7,DH-RISE-5,DD+0.86);
   }
   skin=true;
+  const yTop=z=>DH-1-((z-DD)/RUN)*RISE;     // line through the inside corners of the notches
+  const sk=[[DD,yTop(DD)],[ZB+0.775,yTop(ZB+0.775)],[ZB+0.775,0],[DD+((DH-1-12)/RISE)*RUN,0],[DD,DH-13]];
+  sideMesh(profile(sk),skirtMat,ST_X0-0.375,0.75); sideMesh(profile(sk),skirtMat,ST_X1+0.375,0.75);
   for(let i=1;i<NR;i++){
     const ty=DH-RISE*i, z0=DD+(i-1)*RUN;
-    box(ST_W+1,1,5.5,treadMat,ST_X0+ST_W/2,ty-0.5,z0+3.25); box(ST_W+1,1,5.5,treadMat,ST_X0+ST_W/2,ty-0.5,z0+8.95);
-    box(ST_W,RISE-1,0.75,riserMat,ST_X0+ST_W/2,ty+RISE/2-0.5-0.5,z0+0.4);
+    box(ST_W+3,1,5.5,treadMat,ST_X0+ST_W/2,ty-0.5,z0+3.25); box(ST_W+3,1,5.5,treadMat,ST_X0+ST_W/2,ty-0.5,z0+8.95);
+    box(ST_W+1.5,RISE-1,0.75,riserMat,ST_X0+ST_W/2,ty+(RISE-1)/2,z0+0.4);
   }
-  box(ST_W+1,RISE-1,0.75,riserMat,ST_X0+ST_W/2,RISE/2-0.5,DD+ST_LEN+0.4);
-  skin=false; box(ST_W+24,4,36,concrete,ST_X0+ST_W/2,-1.6,DD+ST_LEN+18);
+  box(ST_W+1.5,RISE-1,0.75,riserMat,ST_X0+ST_W/2,(RISE-1)/2,DD+ST_LEN+0.4);
+  skin=false; box(ST_W+24,4,40,concrete,ST_X0+ST_W/2,-1.6,DD+ST_LEN+12);
 
   // guards on the open sides
   skin=true;
   const postMat=std({color:S.post,roughness:S.rail==='aluminum'?0.45:0.7,metalness:S.rail==='aluminum'?0.3:0});
   const topMat=S.rail==='wood'?boardMat(['#a8703f','#6e4524',false],96,41):std({color:S.top,roughness:0.5,metalness:S.rail==='aluminum'?0.3:0});
   const inMat=S.rail==='cable'?std({color:S.infill,metalness:0.9,roughness:0.25}):std({color:S.infill,roughness:S.rail==='aluminum'?0.45:0.75,metalness:S.rail==='aluminum'?0.3:0});
-  const PS=S.rail==='aluminum'?3:(S.rail==='wood'?3.5:4.5), GT=DH+36;
+  const PS=S.ps||(S.rail==='aluminum'?3:(S.rail==='wood'?3.5:4.5)), GT=DH+36, TW=S.topW||(S.rail==='wood'?5.5:2.6);
   const posts=[];
   const post=(x,z,base,top)=>{ box(PS,top-base,PS,postMat,x,(top+base)/2,z); posts.push([x,z,top]);
     if(S.rail!=='aluminum'&&base<DH){ const yy=[DH-4.5,DH-9];
@@ -299,23 +314,24 @@ function build(key){
   function run(a,b){ const ax=a[0], az=a[1], bx=b[0], bz=b[1]; const len=Math.hypot(bx-ax,bz-az)-PS; const alongX=Math.abs(bx-ax)>Math.abs(bz-az);
     const mx=(ax+bx)/2, mz=(az+bz)/2;
     const rail=(y,h,w)=> alongX? box(len,h,w,topMat,mx,y,mz) : box(w,h,len,topMat,mx,y,mz);
-    rail(GT-0.75,1.5,S.rail==='wood'?5.5:2.6);
+    rail(GT-0.75,1.5,TW);
     if(S.rail!=='cable') rail(DH+3.5,1.5,S.rail==='wood'?3.5:1.6);
     if(S.rail==='cable'){ for(let y=DH+4;y<GT-2;y+=3) (alongX? box(len,0.25,0.25,inMat,mx,y,mz) : box(0.25,0.25,len,inMat,mx,y,mz)); }
     else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75; const n=Math.floor(len/step); const s0=-((n-1)*step)/2;
       for(let i=0;i<n;i++){ const o=s0+i*step; alongX? box(bw,GT-DH-6.5,bw,inMat,mx+o,(GT+DH+2.5)/2,mz) : box(bw,GT-DH-6.5,bw,inMat,mx,(GT+DH+2.5)/2,mz+o); } }
   }
   const zf=DD-inset, xl=inset, xr=DL-inset;
-  const front=[[xl,zf],[(xl+ST_X0-inset)/2,zf],[ST_X0-inset,zf]], frontR=[[ST_X1+inset,zf],[xr,zf]];
+  const sxl=ST_X0-0.75-PS/2, sxr=ST_X1+0.75+PS/2;
+  const front=[[xl,zf],[(xl+sxl)/2,zf],[sxl,zf]], frontR=[[sxr,zf],[xr,zf]];
   const left=[[xl,6],[xl,zf/2+3],[xl,zf]], right=[[xr,6],[xr,zf/2+3],[xr,zf]];
   for(const p of [...front,...frontR,[xl,6],[xl,zf/2+3],[xr,6],[xr,zf/2+3]]) post(p[0],p[1],DH-11,GT);
   for(const seq of [front,frontR,left,right]) for(let i=0;i<seq.length-1;i++) run(seq[i],seq[i+1]);
   // stair guards with sloped rails, both sides
   const zb=DD+ST_LEN+2, slope=RISE/RUN, railAt=z=>GT-(z-zf)*slope;
-  for(const x of [ST_X0-inset,ST_X1+inset]){
+  for(const x of [sxl,sxr]){
     box(PS,railAt(zb)+1,PS,postMat,x,(railAt(zb)+1)/2,zb); box(PS+1,1,PS+1,postMat,x,railAt(zb)+1.5,zb);
     const a=V(x,railAt(zf+PS/2)-0.75,zf+PS/2), b=V(x,railAt(zb-PS/2)-0.75,zb-PS/2);
-    bar(a,b,S.rail==='wood'?3.5:2.6,1.5,topMat);
+    bar(a,b,S.rail==='wood'?3.5:TW,1.5,topMat);
     if(S.rail==='cable'){ for(let k=1;k<=9;k++){ const dy=k*3; bar(V(x,a.y-dy,a.z),V(x,b.y-dy,b.z),0.25,0.25,inMat); } }
     else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75;
       for(let z=zf+PS/2+step/2;z<zb-PS/2;z+=step){ const top=railAt(z)-1.5, bot=Math.max(0.5,DH-((z-DD)/RUN)*RISE+1); if(top-bot>4) box(bw,top-bot,bw,inMat,x,(top+bot)/2,z); } }
