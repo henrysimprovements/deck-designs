@@ -133,21 +133,21 @@ const STYLES={
     deck:['#77756f','#5a5853',true], fascia:['#6c6a65','#55534e',true], frame:null,
     rail:'aluminum', post:'#1c1c1d', top:'#1c1c1d', infill:'#1c1c1d', lights:true,
     mat:[['Decking','Gray composite, grooved edge','#77756f'],['Fascia & risers','Matching composite fascia','#6c6a65'],['Railing','Black powder-coated aluminum','#1c1c1d']],
-    finish:[['Fasteners','Hidden clips, no screw heads'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center']]
+    finish:[['Fasteners','Hidden clips, no screw heads'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
   },
   wood:{
     name:'Classic Wood', mood:'Warm and traditional. Pressure-treated pine in a cedar-tone stain with a matching wood rail and 2×2 balusters.',
     deck:['#a8703f','#6e4524',false], fascia:['#9b6638','#6e4524',false], frame:null,
     rail:'wood', post:'#9b6638', top:'#a8703f', infill:'#a06a3b', lights:false,
     mat:[['Decking','5/4×6 pressure-treated pine, cedar-tone stain','#a8703f'],['Fascia & risers','1×12 pressure-treated, same stain','#9b6638'],['Railing','4×4 posts, 2×6 cap, 2×2 balusters','#a06a3b']],
-    finish:[['Fasteners','Coated deck screws'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Finish','Semi-transparent stain, re-coat every 2–3 yrs'],['Framing','Pressure-treated, 16″ on center']]
+    finish:[['Fasteners','Coated deck screws'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Finish','Semi-transparent stain, re-coat every 2–3 yrs'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
   },
   coastal:{
     name:'Coastal Two-Tone', mood:'Light and open. Driftwood-tone boards with a dark picture-frame border, white posts and stainless cable rail for the view.',
     deck:['#b6a68e','#93836c',true], fascia:['#5a4536','#3f2f24',true], frame:['#5a4536','#3f2f24',true],
     rail:'cable', post:'#f3f1ec', top:'#f3f1ec', infill:'#c9ccd0', lights:true,
     mat:[['Decking','Driftwood-tone composite','#b6a68e'],['Border & fascia','Dark walnut-tone picture frame','#5a4536'],['Railing','White posts, stainless cable infill','#f3f1ec']],
-    finish:[['Fasteners','Hidden clips, plugged screws on border'],['Guard','36″ high, cables 3″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center']]
+    finish:[['Fasteners','Hidden clips, plugged screws on border'],['Guard','36″ high, cables 3″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center'],['Hardware','Galvanized hangers, post bases, caps and ties']]
   }
 };
 const CODE=['Permit drawings and township approval','Footings below frost depth, inspected before concrete','Ledger flashed and bolted to the house to keep water out','Framing inspection before the decking goes down','Guards 36″ high with openings under 4″','Even stair risers and a graspable handrail','Final inspection and approval'];
@@ -173,16 +173,17 @@ const std=(o)=>new THREE.MeshStandardMaterial(Object.assign({roughness:0.7,metal
 let grp=new THREE.Group(); scene.add(grp);
 let skin=false, curView='over'; // skin = finish layer (decking, fascia, rails) hidden in the framing view
 function box(w,h,d,mat,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=m.receiveShadow=true; m.userData.skin=skin; grp.add(m); return m; }
-function cyl(r,h,mat,x,y,z,seg){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||20),mat); m.position.set(x,y,z); m.castShadow=m.receiveShadow=true; grp.add(m); return m; }
+function cyl(r,h,mat,x,y,z,seg){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||20),mat); m.position.set(x,y,z); m.castShadow=m.receiveShadow=true; m.userData.skin=skin; grp.add(m); return m; }
 // a bar from point a to point b (used for sloped stair rails and cables)
 function bar(a,b,w,h,mat){ const d=new THREE.Vector3().subVectors(b,a), len=d.length();
   const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,len),mat); m.position.copy(a).add(b).multiplyScalar(0.5); m.lookAt(b); m.castShadow=m.receiveShadow=true; m.userData.skin=skin; grp.add(m); return m; }
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 
+const yardMat=std({color:'#3b4731',roughness:1}); let yardEdge=null;
 /* ---------- Static site: yard pad and house wall (section cut) ---------- */
 (function(){
-  const yard=new THREE.Mesh(new THREE.BoxGeometry(DL+140,6,DD+150),std({color:'#3b4731',roughness:1})); yard.position.set(DL/2,-3,(DD+150)/2-12); yard.receiveShadow=true; scene.add(yard);
-  const edge=new THREE.Mesh(new THREE.BoxGeometry(DL+141,0.6,DD+151),std({color:'#f4f2ee',roughness:0.8})); edge.position.set(DL/2,-6.2,(DD+150)/2-12); scene.add(edge);
+  const yard=new THREE.Mesh(new THREE.BoxGeometry(DL+140,6,DD+150),yardMat); yard.position.set(DL/2,-3,(DD+150)/2-12); yard.receiveShadow=true; scene.add(yard);
+  const edge=new THREE.Mesh(new THREE.BoxGeometry(DL+141,0.6,DD+151),std({color:'#f4f2ee',roughness:0.8})); edge.position.set(DL/2,-6.2,(DD+150)/2-12); scene.add(edge); yardEdge=edge;
   const sid=sidingTex('#d9d6cf'); sid.repeat.set((DL+140)/48,(150-30)/24);
   const wall=new THREE.Mesh(new THREE.BoxGeometry(DL+140,120,8),[std({color:'#f4f2ee'}),std({color:'#f4f2ee'}),std({color:'#f4f2ee'}),std({color:'#f4f2ee'}),std({map:sid,roughness:0.85}),std({color:'#cfcbc3'})]);
   wall.position.set(DL/2,30+60,-4.01); wall.castShadow=wall.receiveShadow=true; scene.add(wall);
@@ -211,10 +212,38 @@ function build(key){
   box(JT,JH,DD-2*JT,pt,DL-JT/2,joistTop-JH/2,DD/2);
   box(DL,JH,JT,ptDark,DL/2,joistTop-JH/2,DD-JT/2);
   const beamY=joistTop-JH-JH/2; box(DL,JH,4.5,ptDark,DL/2,beamY,BEAM_Z);
-  for(const x of POSTS_X){ box(5.5,beamY-JH/2,5.5,pt,x,(beamY-JH/2)/2,BEAM_Z); cyl(7,2,concrete,x,0.4,BEAM_Z,24); }
-  // joist hangers on the ledger (small metal tabs)
-  const steel=std({color:'#a7abaf',metalness:0.7,roughness:0.4});
-  for(let x=JT/2;x<DL;x+=16) box(3.5,6,0.4,steel,Math.min(x,DL-JT/2),joistTop-JH/2,JT+0.2);
+  const steel=std({color:'#aeb3b7',metalness:0.75,roughness:0.38}), boltM=std({color:'#8c9196',metalness:0.8,roughness:0.35});
+  const beamBot=beamY-JH/2, beamTop=beamY+JH/2;
+  // bolt head + washer facing along +/-z or +/-x
+  function bolt(x,y,z,axis,dir){ const w=cyl(0.95,0.15,boltM,x,y,z,16), h=cyl(0.55,0.45,boltM,x,y,z,6);
+    if(axis==='z'){ w.rotation.x=h.rotation.x=Math.PI/2; w.position.z+=dir*0.08; h.position.z+=dir*0.3; }
+    else { w.rotation.z=h.rotation.z=Math.PI/2; w.position.x+=dir*0.08; h.position.x+=dir*0.3; } }
+
+  // footings: 12" piers to frost depth on a wider bell (seen through the ground in the framing view),
+  // standoff post bases, 6x6 posts and post caps tying the posts to the beam
+  for(const x of POSTS_X){
+    cyl(6,2.2,concrete,x,1.1,BEAM_Z,28);
+    const p1=cyl(6,40,concrete,x,-19,BEAM_Z,28), p2=cyl(11,8,concrete,x,-43,BEAM_Z,28); p1.userData.below=p2.userData.below=true;
+    const p3=cyl(0.3,14,boltM,x,-4,BEAM_Z,8); p3.userData.below=true; // anchor bolt
+    box(6.3,0.3,6.3,steel,x,2.35,BEAM_Z);
+    for(const d of [-1,1]){ box(5.6,3.4,0.14,steel,x,4.1,BEAM_Z+d*2.82); bolt(x,4.2,BEAM_Z+d*2.82,'z',d); }
+    box(5.5,beamBot-2.5,5.5,pt,x,2.5+(beamBot-2.5)/2,BEAM_Z);
+    for(const d of [-1,1]){ box(5.6,11,0.14,steel,x,beamBot+0.5,BEAM_Z+d*2.82);
+      for(const dx of [-1.5,1.5]){ bolt(x+dx,beamBot+3,BEAM_Z+d*2.82,'z',d); bolt(x+dx,beamBot-3,BEAM_Z+d*2.82,'z',d); } }
+  }
+  // ledger: Z-flashing and staggered 1/2" bolts between joists
+  const flash=std({color:'#3a3d40',metalness:0.5,roughness:0.5});
+  box(DL,0.12,2.2,flash,DL/2,joistTop+0.06,1.1); box(DL,2.2,0.12,flash,DL/2,joistTop+1.1,0.06);
+  for(let x=JT/2+8;x<DL-4;x+=16){ bolt(x-3.5,joistTop-2.2,JT,'z',1); bolt(x+3.5,joistTop-JH+2.2,JT,'z',1); }
+  // galvanized face-mount hangers at the ledger and the outside rim
+  function hanger(x,zf,dir){ const zc=zf+dir*1.1, y=joistTop-JH/2-0.6;
+    for(const s of [-1,1]){ box(0.12,7.6,2.2,steel,x+s*(JT/2+0.06),y,zc); box(1.3,7.6,0.12,steel,x+s*(JT/2+0.75),y,zf+dir*0.06); }
+    box(JT+0.24,0.12,2.2,steel,x,joistTop-JH-0.06,zc); }
+  for(let x=JT/2+16;x<DL-2;x+=16){ hanger(x,JT,1); hanger(x,DD-JT,-1); }
+  // hurricane ties where each joist crosses the beam
+  for(let x=JT/2;x<=DL;x+=16){ const xx=Math.min(x,DL-JT/2); box(0.12,6,1.8,steel,xx+(xx>DL/2?-1:1)*(JT/2+0.06),beamTop+0.6,BEAM_Z+1.2); }
+  // corner angles where the end joists meet the ledger and rim
+  for(const [x,d] of [[JT,1],[DL-JT,-1]]) for(const [z,dz] of [[JT,1],[DD-JT,-1]]){ box(0.12,7,2.4,steel,x+d*0.06,joistTop-JH/2-0.6,z+dz*1.2); }
 
   // fascia on the outside rim and both ends
   skin=true;
@@ -241,6 +270,7 @@ function build(key){
   skin=false;
   for(const x of [ST_X0+1,ST_X0+ST_W/2,ST_X1-1]){
     bar(V(x,DH-RISE-5,DD+0.75),V(x,0.5,DD+ST_LEN+4),1.5,9.25,pt);
+    box(0.12,6,2,steel,x+1,DH-RISE-2,DD+1.1); box(2,6,0.12,steel,x+1.9,DH-RISE-2,DD+0.06);
   }
   skin=true;
   for(let i=1;i<NR;i++){
@@ -259,6 +289,9 @@ function build(key){
   const PS=S.rail==='aluminum'?3:(S.rail==='wood'?3.5:4.5), GT=DH+36;
   const posts=[];
   const post=(x,z,base,top)=>{ box(PS,top-base,PS,postMat,x,(top+base)/2,z); posts.push([x,z,top]);
+    if(S.rail!=='aluminum'&&base<DH){ const yy=[DH-4.5,DH-9];
+      if(Math.abs(z-(DD-inset))<0.1) yy.forEach(y=>bolt(x,y,DD+0.76,'z',1));
+      else if(x<DL/2) yy.forEach(y=>bolt(-0.76,y,z,'x',-1)); else yy.forEach(y=>bolt(DL+0.76,y,z,'x',1)); }
     box(PS+1,1,PS+1,postMat,x,top+0.5,z);
     if(S.lights){ box(PS-0.6,0.6,PS-0.6,std({color:'#fff4dc',emissive:'#ffdca0',emissiveIntensity:0.9}),x,top-0.6,z); } };
   const inset=PS/2+0.25;
@@ -317,7 +350,7 @@ function drawPlan(key){
   rect(0,0,DL,JT,`fill="${ink}"`); text(DL/2,10,'2×10 LEDGER, FLASHED + BOLTED','font-size="4.6" fill="#cbd5e1"');
   // joists
   for(let x=16;x<DL-1;x+=16) line(x,JT,x,DD-JT,`stroke="${ink}" stroke-width=".7" stroke-dasharray="3 2" opacity=".75"`);
-  text(DL/2-32,62,'2×10 JOISTS @ 16″ O.C.','font-size="5"');
+  text(DL/2-32,62,'2×10 JOISTS @ 16″ O.C.','font-size="5"'); text(DL/2-32,70,'GALV. HANGERS EACH END · TIES AT BEAM','font-size="4.2" fill="#cbd5e1"');
   // beam, posts, footings
   rect(0,BEAM_Z-2.25,DL,4.5,`fill="none" stroke="${ink}" stroke-width="1.4" stroke-dasharray="6 3"`);
   text(DL-46,BEAM_Z-7,'BEAM (3) 2×10','font-size="5"');
@@ -351,7 +384,8 @@ const VIEWS={
   top:{pos:[DL/2,560,DD/2+40.01],tgt:[DL/2,0,DD/2+40]}
 };
 let anim=null;
-function showSkin(){ grp.traverse(o=>{ if(o.userData.skin) o.visible=curView!=='under'; }); }
+function showSkin(){ const f=curView==='under'; grp.traverse(o=>{ if(o.userData.skin) o.visible=!f; if(o.userData.below) o.visible=f; });
+  yardMat.transparent=f; yardMat.opacity=f?0.42:1; yardMat.depthWrite=!f; yardMat.needsUpdate=true; if(yardEdge) yardEdge.visible=!f; }
 function setView(k,instant){
   curView=k; showSkin();
   const v=VIEWS[k], from={p:camera.position.clone(),t:controls.target.clone()};
