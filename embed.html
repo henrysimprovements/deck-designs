@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deck Style Designer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;600;700;800;900&display=swap">
+<style>
+/* Henry's Improvements look: black, white line work, blueprint grid */
+:root{
+  --bg:#000000; --panel:#050608; --ink:#ffffff; --silver:#cbd5e1; --muted:#94a3b8;
+  --line:rgba(255,255,255,0.16); --line-2:rgba(255,255,255,0.10); --accent:#ffffff;
+  --f:'Fira Sans', Arial, sans-serif; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);margin:0;font-family:var(--f);-webkit-font-smoothing:antialiased;line-height:1.6}
+.dz{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#000}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line-2)}
+.style-btn{appearance:none;background:transparent;border:0;border-left:1px solid var(--line-2);color:var(--muted);cursor:pointer;padding:18px 10px;font:800 0.78rem var(--f);letter-spacing:.16em;text-transform:uppercase;transition:color .3s,background-color .3s}
+.style-btn:first-child{border-left:0}
+.style-btn:hover{color:#fff}
+.style-btn[aria-pressed="true"]{color:#000;background:#fff}
+.style-btn:focus-visible,.pill:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.mood{margin:0;padding:16px 22px;text-align:center;color:var(--silver);font-weight:300;font-size:.96rem;border-bottom:1px solid var(--line-2)}
+.stage{position:relative;aspect-ratio:16/10;width:100%;max-width:100%;overflow:hidden;
+  background:linear-gradient(rgba(255,255,255,0.045) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,rgba(255,255,255,0.045) 1px,transparent 1px) 0 0/28px 28px,radial-gradient(80% 90% at 50% 40%,#11161a,#050608 70%)}
+.stage canvas{display:block;width:100%!important;height:100%!important;touch-action:pan-y;cursor:grab}
+.plan-layer{position:absolute;inset:0;padding:18px;background:linear-gradient(rgba(255,255,255,0.045) 1px,transparent 1px) 0 0/28px 28px,linear-gradient(90deg,rgba(255,255,255,0.045) 1px,transparent 1px) 0 0/28px 28px,#050608;display:grid;place-items:center}
+.plan-layer svg{width:100%;height:100%;display:block}
+.plan-layer svg text{font-family:var(--f);font-weight:700;fill:#fff}
+.badge{position:absolute;top:14px;left:14px;z-index:5;display:inline-flex;gap:8px;align-items:center;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);border-radius:50px;padding:7px 14px;font-size:.68rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+.badge b{font-weight:900}
+.mode{position:absolute;top:14px;right:14px;z-index:5;display:flex;border:1px solid rgba(255,255,255,.35);border-radius:50px;overflow:hidden;background:rgba(0,0,0,.6)}
+.views{position:absolute;left:14px;bottom:14px;z-index:5;display:flex;flex-wrap:wrap;gap:6px;max-width:calc(100% - 28px)}
+.pill{appearance:none;border:0;background:transparent;color:#fff;font:700 .66rem var(--f);letter-spacing:.14em;text-transform:uppercase;padding:7px 13px;cursor:pointer}
+.views .pill{border:1px solid rgba(255,255,255,.3);border-radius:50px;background:rgba(0,0,0,.55)}
+.pill[aria-pressed="true"]{background:#fff!important;color:#000}
+.hint{display:none}
+.plan-layer[hidden],.views[hidden]{display:none!important}
+.specs-row{display:grid;grid-template-columns:1.25fr 1fr 1fr;border-top:1px solid var(--line-2)}
+.specs-row>div{padding:22px 22px 24px;border-left:1px solid var(--line-2);min-width:0}
+.specs-row>div:first-child{border-left:0}
+.lab{margin:0 0 12px;font-size:.7rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.specs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.specs li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;align-items:start}
+.sw{width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,.35);margin-top:3px}
+.what{font-weight:600;font-size:.9rem;line-height:1.35}
+.where{color:var(--muted);font-size:.8rem;font-weight:300}
+.qty{display:none}
+.finish{display:flex;flex-direction:column;gap:6px;font-size:.86rem}
+.finish div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+.finish div span:first-child{color:var(--muted);text-transform:uppercase;font-size:.68rem;letter-spacing:.14em;font-weight:700;padding-top:2px}
+.finish div span:last-child{text-align:right;font-weight:300}
+#s-code{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--silver);font-size:.86rem;font-weight:300}
+#plan-notes{display:none}
+.foot{margin:0;padding:14px 22px;border-top:1px solid var(--line-2);font-size:.74rem;color:rgba(148,163,184,.85);font-weight:300;text-align:center}
+@media (max-width:760px){
+  .style-btn{padding:15px 4px;font-size:.64rem;letter-spacing:.08em}
+  .stage{aspect-ratio:1/1}
+  .specs-row{grid-template-columns:minmax(0,1fr)}
+  .specs-row>div{border-left:0;border-top:1px solid var(--line-2)}
+  .specs-row>div:first-child{border-top:0}
+  .pill{font-size:.6rem;padding:6px 10px;letter-spacing:.08em}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.sp-row{display:grid;grid-template-columns:1.1fr 1fr 1fr;border-top:1px solid var(--line-2)}
+.sp-row>div{padding:22px 22px 24px;border-left:1px solid var(--line-2);min-width:0}
+.sp-row>div:first-child{border-left:0}
+@media (max-width:760px){.sp-row{grid-template-columns:minmax(0,1fr)}.sp-row>div{border-left:0;border-top:1px solid var(--line-2)}.sp-row>div:first-child{border-top:0}}
+.plan-layer{padding:58px 14px 14px}
+.err{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted)}
+</style>
+</head><body>
+<div class="dz" id="dz">
+  <div class="tabs" role="group" aria-label="Choose a style">
+    <button class="style-btn" data-style="modern" aria-pressed="true">Modern Composite</button>
+    <button class="style-btn" data-style="wood" aria-pressed="false">Classic Wood</button>
+    <button class="style-btn" data-style="coastal" aria-pressed="false">Coastal Two-Tone</button>
+  </div>
+  <p class="mood" id="s-mood"></p>
+  <div class="stage" id="stage">
+    <div class="badge"><b>16′×12′</b> <span id="s-name">Modern Composite</span></div>
+    <div class="mode" role="group" aria-label="View mode">
+      <button class="pill" id="m-3d" aria-pressed="true">3D</button>
+      <button class="pill" id="m-plan" aria-pressed="false">Framing plan</button>
+    </div>
+    <div class="views" id="views" role="group" aria-label="Camera views">
+      <button class="pill" data-view="over" aria-pressed="true">Overview</button>
+      <button class="pill" data-view="yard" aria-pressed="false">From the yard</button>
+      <button class="pill" data-view="under" aria-pressed="false">Framing</button>
+      <button class="pill" data-view="top" aria-pressed="false">Top down</button>
+    </div>
+    <div class="plan-layer" id="plan-layer" hidden><svg id="plan-svg" viewBox="-60 -36 320 310" role="img" aria-label="Dimensioned deck framing plan"></svg></div>
+  </div>
+  <div class="sp-row">
+    <div><p class="lab">Materials</p><ul class="specs" id="s-mat"></ul></div>
+    <div><p class="lab">Railing &amp; details</p><div class="finish" id="s-finish"></div></div>
+    <div><p class="lab">What we handle</p><ul id="s-code"></ul></div>
+  </div>
+  <p class="foot">Sample 16′×12′ deck, 3′ off the ground. Your design is drawn to your yard's real measurements, with the decking and railing you pick.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+const stage=document.getElementById('stage');
+if(!window.THREE){ stage.insertAdjacentHTML('beforeend','<div class="err">The 3D viewer could not load. Check your connection and reload the page.</div>'); return; }
+
+/* ---------- Deck in inches: x = 192 along the house, z = 144 out into the yard, y up from grade ---------- */
+const DL=192, DD=144, DH=36;            // deck length, depth, height to top of decking
+const JH=9.25, JT=1.5;                  // 2x10 joists
+const BEAM_Z=126, POSTS_X=[6,96,186];   // dropped beam with an 18" cantilever
+const ST_X0=126, ST_W=48, RISE=7.2, RUN=10.5, NR=5; // stairs: 5 risers, 4 treads
+const ST_X1=ST_X0+ST_W, ST_LEN=(NR-1)*RUN;
+
+function rng(seed){ let s=seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+function grainTex(base,dark,seed,streak){
+  const c=document.createElement('canvas'); c.width=1024; c.height=128; const g=c.getContext('2d'); const r=rng(seed);
+  g.fillStyle=base; g.fillRect(0,0,1024,128);
+  for(let i=0;i<(streak?60:110);i++){ g.strokeStyle=dark; g.globalAlpha=(streak?0.04:0.06)+r()*0.16; g.lineWidth=0.6+r()*2.4; g.beginPath(); let y=r()*128; g.moveTo(0,y); for(let x=0;x<=1024;x+=48){ y+=(r()-0.5)*(streak?2:5); g.lineTo(x,y);} g.stroke(); }
+  if(!streak) for(let i=0;i<5;i++){ g.globalAlpha=0.25; g.fillStyle=dark; g.beginPath(); g.ellipse(r()*1024,r()*128,6+r()*8,3+r()*3,0,0,7); g.fill(); }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding=THREE.sRGBEncoding; t.anisotropy=8; return t;
+}
+function sidingTex(base){
+  const c=document.createElement('canvas'); c.width=256; c.height=256; const g=c.getContext('2d');
+  g.fillStyle=base; g.fillRect(0,0,256,256);
+  for(let y=0;y<256;y+=64){ const gr=g.createLinearGradient(0,y,0,y+64); gr.addColorStop(0,'rgba(0,0,0,.28)'); gr.addColorStop(0.12,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(255,255,255,.06)'); g.fillStyle=gr; g.fillRect(0,y,256,64); }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.encoding=THREE.sRGBEncoding; return t;
+}
+
+/* ---------- Styles (generic, widely stocked products) ---------- */
+const STYLES={
+  modern:{
+    name:'Modern Composite', mood:'Low maintenance and sharp. Gray composite boards with hidden fasteners, black aluminum railing and post-cap lights.',
+    deck:['#77756f','#5a5853',true], fascia:['#6c6a65','#55534e',true], frame:null,
+    rail:'aluminum', post:'#1c1c1d', top:'#1c1c1d', infill:'#1c1c1d', lights:true,
+    mat:[['Decking','Gray composite, grooved edge','#77756f'],['Fascia & risers','Matching composite fascia','#6c6a65'],['Railing','Black powder-coated aluminum','#1c1c1d']],
+    finish:[['Fasteners','Hidden clips, no screw heads'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center']]
+  },
+  wood:{
+    name:'Classic Wood', mood:'Warm and traditional. Pressure-treated pine in a cedar-tone stain with a matching wood rail and 2×2 balusters.',
+    deck:['#a8703f','#6e4524',false], fascia:['#9b6638','#6e4524',false], frame:null,
+    rail:'wood', post:'#9b6638', top:'#a8703f', infill:'#a06a3b', lights:false,
+    mat:[['Decking','5/4×6 pressure-treated pine, cedar-tone stain','#a8703f'],['Fascia & risers','1×12 pressure-treated, same stain','#9b6638'],['Railing','4×4 posts, 2×6 cap, 2×2 balusters','#a06a3b']],
+    finish:[['Fasteners','Coated deck screws'],['Guard','36″ high, balusters under 4″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Finish','Semi-transparent stain, re-coat every 2–3 yrs'],['Framing','Pressure-treated, 16″ on center']]
+  },
+  coastal:{
+    name:'Coastal Two-Tone', mood:'Light and open. Driftwood-tone boards with a dark picture-frame border, white posts and stainless cable rail for the view.',
+    deck:['#b6a68e','#93836c',true], fascia:['#5a4536','#3f2f24',true], frame:['#5a4536','#3f2f24',true],
+    rail:'cable', post:'#f3f1ec', top:'#f3f1ec', infill:'#c9ccd0', lights:true,
+    mat:[['Decking','Driftwood-tone composite','#b6a68e'],['Border & fascia','Dark walnut-tone picture frame','#5a4536'],['Railing','White posts, stainless cable infill','#f3f1ec']],
+    finish:[['Fasteners','Hidden clips, plugged screws on border'],['Guard','36″ high, cables 3″ apart'],['Stairs','4 treads, 48″ wide, with handrail'],['Lighting','Post-cap lights'],['Framing','Pressure-treated, 16″ on center']]
+  }
+};
+const CODE=['Permit drawings and township approval','Footings below frost depth, inspected before concrete','Ledger flashed and bolted to the house to keep water out','Framing inspection before the decking goes down','Guards 36″ high with openings under 4″','Even stair risers and a graspable handrail','Final inspection and approval'];
+
+/* ---------- Three.js setup ---------- */
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setClearColor(0x000000,0);
+renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+stage.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,16/10,2,4000);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=0.08; controls.maxPolarAngle=Math.PI*0.49; controls.minDistance=80; controls.maxDistance=900;
+
+scene.add(new THREE.HemisphereLight(0xfffaf0,0x6d6a60,0.6));
+const sun=new THREE.DirectionalLight(0xfff1dc,0.85); sun.position.set(-160,320,300); sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048); Object.assign(sun.shadow.camera,{left:-220,right:220,top:220,bottom:-220,near:10,far:1200}); sun.shadow.bias=-0.0005;
+sun.target.position.set(DL/2,0,DD/2); scene.add(sun,sun.target);
+
+const std=(o)=>new THREE.MeshStandardMaterial(Object.assign({roughness:0.7,metalness:0},o));
+let grp=new THREE.Group(); scene.add(grp);
+let skin=false, curView='over'; // skin = finish layer (decking, fascia, rails) hidden in the framing view
+function box(w,h,d,mat,x,y,z){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat); m.position.set(x,y,z); m.castShadow=m.receiveShadow=true; m.userData.skin=skin; grp.add(m); return m; }
+function cyl(r,h,mat,x,y,z,seg){ const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||20),mat); m.position.set(x,y,z); m.castShadow=m.receiveShadow=true; grp.add(m); return m; }
+// a bar from point a to point b (used for sloped stair rails and cables)
+function bar(a,b,w,h,mat){ const d=new THREE.Vector3().subVectors(b,a), len=d.length();
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,len),mat); m.position.copy(a).add(b).multiplyScalar(0.5); m.lookAt(b); m.castShadow=m.receiveShadow=true; m.userData.skin=skin; grp.add(m); return m; }
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+
+/* ---------- Static site: yard pad and house wall (section cut) ---------- */
+(function(){
+  const yard=new THREE.Mesh(new THREE.BoxGeometry(DL+140,6,DD+150),std({color:'#3b4731',roughness:1})); yard.position.set(DL/2,-3,(DD+150)/2-12); yard.receiveShadow=true; scene.add(yard);
+  const edge=new THREE.Mesh(new THREE.BoxGeometry(DL+141,0.6,DD+151),std({color:'#f4f2ee',roughness:0.8})); edge.position.set(DL/2,-6.2,(DD+150)/2-12); scene.add(edge);
+  const sid=sidingTex('#d9d6cf'); sid.repeat.set((DL+140)/48,(150-30)/24);
+  const wall=new THREE.Mesh(new THREE.BoxGeometry(DL+140,120,8),[std({color:'#f4f2ee'}),std({color:'#f4f2ee'}),std({color:'#f4f2ee'}),std({color:'#f4f2ee'}),std({map:sid,roughness:0.85}),std({color:'#cfcbc3'})]);
+  wall.position.set(DL/2,30+60,-4.01); wall.castShadow=wall.receiveShadow=true; scene.add(wall);
+  const fnd=new THREE.Mesh(new THREE.BoxGeometry(DL+140,30,9),std({color:'#9a9893',roughness:0.95})); fnd.position.set(DL/2,15,-4.5); fnd.receiveShadow=true; scene.add(fnd);
+  const cap=new THREE.Mesh(new THREE.BoxGeometry(DL+141,1,9),std({color:'#f4f2ee'})); cap.position.set(DL/2,150.5,-4.5); scene.add(cap);
+  // sliding door onto the deck
+  const trim=std({color:'#f7f6f2',roughness:0.5}), glass=std({color:'#2b3a42',roughness:0.08,metalness:0.4});
+  const door=new THREE.Group(); scene.add(door);
+  const add=(w,h,d,m,x,y,z)=>{ const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=true; door.add(b); };
+  add(74,82,1.2,trim,96,DH+41,0.4); add(70,78,1.4,glass,96,DH+41,0.6); add(1.6,78,1.8,trim,96,DH+41,0.8);
+  // window to the left of the deck
+  add(40,50,1.2,trim,-36,DH+52,0.4); add(36,46,1.4,glass,-36,DH+52,0.6); add(36,1.4,1.8,trim,-36,DH+52,0.8);
+})();
+
+function build(key){
+  scene.remove(grp); grp.traverse(o=>{ if(o.geometry) o.geometry.dispose(); }); grp=new THREE.Group(); scene.add(grp);
+  const S=STYLES[key];
+  const boardMat=(c,len,seed)=>{ const t=grainTex(c[0],c[1],seed,c[2]); t.repeat.set(len/96,1); return std({map:t,roughness:c[2]?0.65:0.8}); };
+  const pt=std({color:'#6f6449',roughness:0.85}), ptDark=std({color:'#5f553d',roughness:0.85});
+  const concrete=std({color:'#b9b6ae',roughness:0.95});
+  const deckTop=DH, joistTop=DH-1;
+
+  // ledger, joists, rims, beam, posts, footings
+  box(DL,JH,JT,ptDark,DL/2,joistTop-JH/2,JT/2);
+  for(let x=JT/2;x<=DL-JT/2+0.01;x+=16){ const xx=Math.min(x,DL-JT/2); box(JT,JH,DD-2*JT,pt,xx,joistTop-JH/2,DD/2); }
+  box(JT,JH,DD-2*JT,pt,DL-JT/2,joistTop-JH/2,DD/2);
+  box(DL,JH,JT,ptDark,DL/2,joistTop-JH/2,DD-JT/2);
+  const beamY=joistTop-JH-JH/2; box(DL,JH,4.5,ptDark,DL/2,beamY,BEAM_Z);
+  for(const x of POSTS_X){ box(5.5,beamY-JH/2,5.5,pt,x,(beamY-JH/2)/2,BEAM_Z); cyl(7,2,concrete,x,0.4,BEAM_Z,24); }
+  // joist hangers on the ledger (small metal tabs)
+  const steel=std({color:'#a7abaf',metalness:0.7,roughness:0.4});
+  for(let x=JT/2;x<DL;x+=16) box(3.5,6,0.4,steel,Math.min(x,DL-JT/2),joistTop-JH/2,JT+0.2);
+
+  // fascia on the outside rim and both ends
+  skin=true;
+  const fz=boardMat(S.fascia,DL,5), fx=boardMat(S.fascia,DD,6);
+  box(DL+1.5,11.25,0.75,fz,DL/2,joistTop-JH/2-0.5,DD+0.38);
+  box(0.75,11.25,DD,fx,-0.38,joistTop-JH/2-0.5,DD/2); box(0.75,11.25,DD,fx,DL+0.38,joistTop-JH/2-0.5,DD/2);
+
+  // decking: 5.5" boards with 3/16" gaps, 1" overhang; optional picture-frame border
+  const BW=5.5, GAP=0.1875, OV=1;
+  const field=boardMat(S.deck,DL,11);
+  if(S.frame){
+    const fr=boardMat(S.frame,DL,21), frz=boardMat(S.frame,DD,22);
+    box(DL+2*OV,1,BW,fr,DL/2,deckTop-0.5,DD+OV-BW/2);              // front border
+    box(BW,1,DD+OV-BW-GAP,frz,-OV+BW/2,deckTop-0.5,(DD+OV-BW-GAP)/2); // side borders
+    box(BW,1,DD+OV-BW-GAP,frz,DL+OV-BW/2,deckTop-0.5,(DD+OV-BW-GAP)/2);
+    const x0=-OV+BW+GAP, x1=DL+OV-BW-GAP;
+    for(let z=0.5;z+BW<=DD+OV-BW-GAP+0.01;z+=BW+GAP) box(x1-x0,1,BW,field,(x0+x1)/2,deckTop-0.5,z+BW/2);
+  } else {
+    for(let z=0.5;z<DD+OV-0.5;z+=BW+GAP){ const w=Math.min(BW,DD+OV-z); box(DL+2*OV,1,w,field,DL/2,deckTop-0.5,z+w/2); }
+  }
+
+  // stairs: 3 stringers, treads of two boards, risers in fascia
+  const treadMat=boardMat(S.frame||S.deck,ST_W,31), riserMat=boardMat(S.fascia,ST_W,32);
+  skin=false;
+  for(const x of [ST_X0+1,ST_X0+ST_W/2,ST_X1-1]){
+    bar(V(x,DH-RISE-5,DD+0.75),V(x,0.5,DD+ST_LEN+4),1.5,9.25,pt);
+  }
+  skin=true;
+  for(let i=1;i<NR;i++){
+    const ty=DH-RISE*i, z0=DD+(i-1)*RUN;
+    box(ST_W+1,1,5.5,treadMat,ST_X0+ST_W/2,ty-0.5,z0+3.25); box(ST_W+1,1,5.5,treadMat,ST_X0+ST_W/2,ty-0.5,z0+8.95);
+    box(ST_W,RISE-1,0.75,riserMat,ST_X0+ST_W/2,ty+RISE/2-0.5-0.5,z0+0.4);
+  }
+  box(ST_W+1,RISE-1,0.75,riserMat,ST_X0+ST_W/2,RISE/2-0.5,DD+ST_LEN+0.4);
+  skin=false; box(ST_W+24,4,36,concrete,ST_X0+ST_W/2,-1.6,DD+ST_LEN+18);
+
+  // guards on the open sides
+  skin=true;
+  const postMat=std({color:S.post,roughness:S.rail==='aluminum'?0.45:0.7,metalness:S.rail==='aluminum'?0.3:0});
+  const topMat=S.rail==='wood'?boardMat(['#a8703f','#6e4524',false],96,41):std({color:S.top,roughness:0.5,metalness:S.rail==='aluminum'?0.3:0});
+  const inMat=S.rail==='cable'?std({color:S.infill,metalness:0.9,roughness:0.25}):std({color:S.infill,roughness:S.rail==='aluminum'?0.45:0.75,metalness:S.rail==='aluminum'?0.3:0});
+  const PS=S.rail==='aluminum'?3:(S.rail==='wood'?3.5:4.5), GT=DH+36;
+  const posts=[];
+  const post=(x,z,base,top)=>{ box(PS,top-base,PS,postMat,x,(top+base)/2,z); posts.push([x,z,top]);
+    box(PS+1,1,PS+1,postMat,x,top+0.5,z);
+    if(S.lights){ box(PS-0.6,0.6,PS-0.6,std({color:'#fff4dc',emissive:'#ffdca0',emissiveIntensity:0.9}),x,top-0.6,z); } };
+  const inset=PS/2+0.25;
+  // a straight guard run between two posts, along x or z
+  function run(a,b){ const ax=a[0], az=a[1], bx=b[0], bz=b[1]; const len=Math.hypot(bx-ax,bz-az)-PS; const alongX=Math.abs(bx-ax)>Math.abs(bz-az);
+    const mx=(ax+bx)/2, mz=(az+bz)/2;
+    const rail=(y,h,w)=> alongX? box(len,h,w,topMat,mx,y,mz) : box(w,h,len,topMat,mx,y,mz);
+    rail(GT-0.75,1.5,S.rail==='wood'?5.5:2.6);
+    if(S.rail!=='cable') rail(DH+3.5,1.5,S.rail==='wood'?3.5:1.6);
+    if(S.rail==='cable'){ for(let y=DH+4;y<GT-2;y+=3) (alongX? box(len,0.25,0.25,inMat,mx,y,mz) : box(0.25,0.25,len,inMat,mx,y,mz)); }
+    else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75; const n=Math.floor(len/step); const s0=-((n-1)*step)/2;
+      for(let i=0;i<n;i++){ const o=s0+i*step; alongX? box(bw,GT-DH-6.5,bw,inMat,mx+o,(GT+DH+2.5)/2,mz) : box(bw,GT-DH-6.5,bw,inMat,mx,(GT+DH+2.5)/2,mz+o); } }
+  }
+  const zf=DD-inset, xl=inset, xr=DL-inset;
+  const front=[[xl,zf],[(xl+ST_X0-inset)/2,zf],[ST_X0-inset,zf]], frontR=[[ST_X1+inset,zf],[xr,zf]];
+  const left=[[xl,6],[xl,zf/2+3],[xl,zf]], right=[[xr,6],[xr,zf/2+3],[xr,zf]];
+  for(const p of [...front,...frontR,[xl,6],[xl,zf/2+3],[xr,6],[xr,zf/2+3]]) post(p[0],p[1],DH-11,GT);
+  for(const seq of [front,frontR,left,right]) for(let i=0;i<seq.length-1;i++) run(seq[i],seq[i+1]);
+  // stair guards with sloped rails, both sides
+  const zb=DD+ST_LEN+2, slope=RISE/RUN, railAt=z=>GT-(z-zf)*slope;
+  for(const x of [ST_X0-inset,ST_X1+inset]){
+    box(PS,railAt(zb)+1,PS,postMat,x,(railAt(zb)+1)/2,zb); box(PS+1,1,PS+1,postMat,x,railAt(zb)+1.5,zb);
+    const a=V(x,railAt(zf+PS/2)-0.75,zf+PS/2), b=V(x,railAt(zb-PS/2)-0.75,zb-PS/2);
+    bar(a,b,S.rail==='wood'?3.5:2.6,1.5,topMat);
+    if(S.rail==='cable'){ for(let k=1;k<=9;k++){ const dy=k*3; bar(V(x,a.y-dy,a.z),V(x,b.y-dy,b.z),0.25,0.25,inMat); } }
+    else { const step=S.rail==='wood'?5:4, bw=S.rail==='wood'?1.5:0.75;
+      for(let z=zf+PS/2+step/2;z<zb-PS/2;z+=step){ const top=railAt(z)-1.5, bot=Math.max(0.5,DH-((z-DD)/RUN)*RISE+1); if(top-bot>4) box(bw,top-bot,bw,inMat,x,(top+bot)/2,z); } }
+  }
+
+  skin=false; showSkin();
+  // side panel
+  document.getElementById('s-name').textContent=S.name;
+  document.getElementById('s-mood').textContent=S.mood;
+  document.getElementById('s-mat').innerHTML=S.mat.map(([a,b,c])=>`<li><span class="sw" style="background:${c}"></span><div><div class="what">${a}</div><div class="where">${b}</div></div></li>`).join('');
+  document.getElementById('s-finish').innerHTML=S.finish.map(([a,b])=>`<div><span>${a}</span><span>${b}</span></div>`).join('');
+  document.getElementById('s-code').innerHTML=CODE.map(c=>`<li>${c}</li>`).join('');
+  drawPlan(key);
+}
+
+/* ---------- 2D dimensioned framing plan (house at top, yard at bottom) ---------- */
+function ftin(i){ const f=Math.floor(i/12), r=Math.round(i-f*12); return f? `${f}′-${r}″` : `${r}″`; }
+function drawPlan(key){
+  const S=STYLES[key], svg=document.getElementById('plan-svg'), ink='#fff', mut='#94a3b8', o=[];
+  const FS=6;
+  const rect=(x,y,w,h,a)=>o.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" ${a||''}/>`);
+  const line=(x1,y1,x2,y2,a)=>o.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${a||''}/>`);
+  const text=(x,y,t,a)=>o.push(`<text x="${x}" y="${y}" font-size="${FS}" text-anchor="middle" ${a||''}>${t}</text>`);
+  const dimH=(x1,x2,y,lab)=>{ line(x1,y,x2,y,`stroke="${mut}" stroke-width=".6"`); for(const x of [x1,x2]){ line(x,y-4,x,y+4,`stroke="${mut}" stroke-width=".6"`); line(x-2.2,y+2.2,x+2.2,y-2.2,`stroke="${ink}" stroke-width="1"`);} text((x1+x2)/2,y-3,lab||ftin(x2-x1)); };
+  const dimV=(y1,y2,x,lab)=>{ line(x,y1,x,y2,`stroke="${mut}" stroke-width=".6"`); for(const y of [y1,y2]){ line(x-4,y,x+4,y,`stroke="${mut}" stroke-width=".6"`); line(x-2.2,y+2.2,x+2.2,y-2.2,`stroke="${ink}" stroke-width="1"`);} const tx=x-3.5, ty=(y1+y2)/2; o.push(`<text x="${tx}" y="${ty}" font-size="${FS}" text-anchor="middle" transform="rotate(-90 ${tx} ${ty})">${lab||ftin(y2-y1)}</text>`); };
+  // house wall with slider
+  rect(-50,-14,DL+100,14,`fill="${ink}" opacity=".9"`); rect(60,-14,72,14,`fill="#050608" stroke="${ink}" stroke-width=".8"`);
+  line(60,-7,132,-7,`stroke="${ink}" stroke-width=".8"`); text(96,-20,'SLIDING DOOR'); text(-22,-20,'HOUSE');
+  // deck surface tint and outline
+  rect(0,0,DL,DD,`fill="${S.deck[0]}" opacity=".28" stroke="${ink}" stroke-width="1.4"`);
+  // ledger
+  rect(0,0,DL,JT,`fill="${ink}"`); text(DL/2,10,'2×10 LEDGER, FLASHED + BOLTED','font-size="4.6" fill="#cbd5e1"');
+  // joists
+  for(let x=16;x<DL-1;x+=16) line(x,JT,x,DD-JT,`stroke="${ink}" stroke-width=".7" stroke-dasharray="3 2" opacity=".75"`);
+  text(DL/2-32,62,'2×10 JOISTS @ 16″ O.C.','font-size="5"');
+  // beam, posts, footings
+  rect(0,BEAM_Z-2.25,DL,4.5,`fill="none" stroke="${ink}" stroke-width="1.4" stroke-dasharray="6 3"`);
+  text(DL-46,BEAM_Z-7,'BEAM (3) 2×10','font-size="5"');
+  for(const x of POSTS_X){ o.push(`<circle cx="${x}" cy="${BEAM_Z}" r="7" fill="none" stroke="${mut}" stroke-width=".8" stroke-dasharray="2 1.5"/>`); rect(x-2.75,BEAM_Z-2.75,5.5,5.5,`fill="${ink}"`); }
+  text(58,BEAM_Z-12,'6×6 POSTS ON 12″ Ø FOOTINGS','font-size="4.6" fill="#cbd5e1"');
+  // guard line on the open sides
+  const g=`stroke="${ink}" stroke-width="2.2" stroke-linecap="square"`;
+  line(2,4,2,DD-2,g); line(DL-2,4,DL-2,DD-2,g); line(2,DD-2,ST_X0,DD-2,g); line(ST_X1,DD-2,DL-2,DD-2,g);
+  text(-13,DD/2,'36″ GUARD',`font-size="4.6" transform="rotate(-90 -13 ${DD/2})" fill="#cbd5e1"`);
+  // stairs
+  rect(ST_X0,DD,ST_W,ST_LEN,`fill="${(S.frame||S.deck)[0]}" opacity=".4" stroke="${ink}" stroke-width="1"`);
+  for(let i=1;i<NR-1;i++) line(ST_X0,DD+i*RUN,ST_X1,DD+i*RUN,`stroke="${ink}" stroke-width=".7"`);
+  line(ST_X0+ST_W/2,DD+4,ST_X0+ST_W/2,DD+ST_LEN-6,`stroke="${ink}" stroke-width=".9"`);
+  o.push(`<path d="M${ST_X0+ST_W/2-3} ${DD+ST_LEN-9} L${ST_X0+ST_W/2} ${DD+ST_LEN-4} L${ST_X0+ST_W/2+3} ${DD+ST_LEN-9}" fill="none" stroke="${ink}" stroke-width=".9"/>`);
+  text(ST_X0-16,DD+ST_LEN/2+2,'DN 5R','font-size="5"');
+  rect(ST_X0-12,DD+ST_LEN,ST_W+24,36,`fill="none" stroke="${mut}" stroke-width=".7"`); text(ST_X0+ST_W/2,DD+ST_LEN+21,'CONCRETE PAD','font-size="4.6" fill="#cbd5e1"');
+  // dimensions
+  dimH(0,DL,DD+ST_LEN+68,'16′-0″');
+  dimV(0,DD,-32,'12′-0″');
+  dimV(0,BEAM_Z,DL+18); dimV(BEAM_Z,DD,DL+18,'1′-6″');
+  dimH(ST_X0,ST_X1,DD+ST_LEN+50,'4′-0″ STAIR');
+  text(DL/2,DD+ST_LEN+84,'FRAMING PLAN · DECK 3′-0″ ABOVE GRADE · NOT FOR CONSTRUCTION','font-size="4.4" fill="#94a3b8"');
+  svg.innerHTML=o.join('');
+}
+
+/* ---------- Camera views ---------- */
+const VIEWS={
+  over:{pos:[-150,230,390],tgt:[DL/2,30,DD/2+10]},
+  yard:{pos:[DL/2+30,70,470],tgt:[DL/2,45,DD/2]},
+  under:{pos:[-110,215,330],tgt:[DL/2,20,DD/2+10]},
+  top:{pos:[DL/2,560,DD/2+40.01],tgt:[DL/2,0,DD/2+40]}
+};
+let anim=null;
+function showSkin(){ grp.traverse(o=>{ if(o.userData.skin) o.visible=curView!=='under'; }); }
+function setView(k,instant){
+  curView=k; showSkin();
+  const v=VIEWS[k], from={p:camera.position.clone(),t:controls.target.clone()};
+  const to={p:new THREE.Vector3(...v.pos),t:new THREE.Vector3(...v.tgt)};
+  document.querySelectorAll('.views button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===k));
+  const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(instant||reduce){ camera.position.copy(to.p); controls.target.copy(to.t); controls.update(); return; }
+  const t0=performance.now(); anim=(now)=>{ const u=Math.min(1,(now-t0)/700), e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+    camera.position.lerpVectors(from.p,to.p,e); controls.target.lerpVectors(from.t,to.t,e); if(u>=1) anim=null; };
+}
+document.querySelectorAll('.views button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+document.querySelectorAll('.style-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.style-btn').forEach(x=>x.setAttribute('aria-pressed',x===b)); build(b.dataset.style);
+}));
+function resize(){ const w=stage.clientWidth, h=stage.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(stage);
+build('modern'); resize(); setView('over',true);
+(function loop(now){ requestAnimationFrame(loop); if(anim) anim(now); controls.update(); renderer.render(scene,camera); })(performance.now());
+})();
+</script>
+<script>
+(function(){
+  const layer=document.getElementById('plan-layer'), views=document.getElementById('views');
+  const m3=document.getElementById('m-3d'), mp=document.getElementById('m-plan');
+  function mode(plan){ layer.hidden=!plan; views.hidden=plan; m3.setAttribute('aria-pressed',!plan); mp.setAttribute('aria-pressed',plan); post(); }
+  m3.addEventListener('click',()=>mode(false)); mp.addEventListener('click',()=>mode(true));
+  // tell the parent page how tall this is, so the embed never needs its own scrollbar
+  function post(){ try{ parent.postMessage({hiDeckDesigner:true,height:document.getElementById('dz').offsetHeight+2},'*'); }catch(e){} }
+  new ResizeObserver(post).observe(document.getElementById('dz'));
+  document.querySelectorAll('.style-btn').forEach(b=>b.addEventListener('click',()=>setTimeout(post,50)));
+  post();
+})();
+</script>
+</body></html>
